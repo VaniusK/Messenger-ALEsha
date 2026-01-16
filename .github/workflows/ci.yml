@@ -1,0 +1,29 @@
+jobs:
+  build-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build server
+        run: |
+          cmake -B build/server -S server
+          cmake --build build/server
+      - name: Test server
+        run: ctest --test-dir build/server --output-on-failure
+
+  build-client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt
+        run: sudo apt-get install -y qt6-base-dev
+      - name: Build client
+        run: |
+          cmake -B build/client -S client
+          cmake --build build/client
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t messenger-server ./server
