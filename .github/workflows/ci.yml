@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Cache server dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/server/_deps
+          key: server-deps-${{ hashFiles('server/CMakeLists.txt') }}
+          restore-keys: server-deps-
       - name: Build server
         run: |
           cmake -B build/server -S server
@@ -22,12 +28,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Cache client dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/client/_deps
+          key: client-deps-${{ hashFiles('client/CMakeLists.txt') }}
+          restore-keys: client-deps-
       - name: Install Qt
         run: sudo apt-get install -y qt6-base-dev
       - name: Build client
         run: |
           cmake -B build/client -S client
           cmake --build build/client
+      - name: Test client
+        run: ctest --test-dir build/client --output-on-failure
 
   docker:
     runs-on: ubuntu-latest
