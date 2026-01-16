@@ -1,27 +1,29 @@
-name: CI
-
-on:
-  push:
-    branches: [main, dev]
-  pull_request:
-    branches: [main, dev]
-
 jobs:
-  build:
+  build-server:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Install dependencies
+      - name: Build server
         run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake build-essential qt6-base-dev
-          
-      - name: Configure
-        run: cmake -B build -S .
-        
-      - name: Build
-        run: cmake --build build
-        
-      - name: Run tests
-        run: ctest --test-dir build --output-on-failure
+          cmake -B build/server -S server
+          cmake --build build/server
+      - name: Test server
+        run: ctest --test-dir build/server --output-on-failure
+
+  build-client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt
+        run: sudo apt-get install -y qt6-base-dev
+      - name: Build client
+        run: |
+          cmake -B build/client -S client
+          cmake --build build/client
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t messenger-server ./server
