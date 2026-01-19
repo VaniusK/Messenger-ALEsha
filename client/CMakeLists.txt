@@ -8,12 +8,19 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
+find_package(Qt6 REQUIRED COMPONENTS Quick)
 
 # Client executable
-add_executable(client src/main.cpp)
+qt_add_executable(client src/main.cpp)
+
+qt_add_qml_module(client
+    URI messenger_client_uri
+    VERSION 1.0
+    QML_FILES
+        src/main.qml
+)
 target_include_directories(client PRIVATE include)
-target_link_libraries(client Qt6::Widgets Qt6::Network)
+target_link_libraries(client PRIVATE Qt6::Quick)
 
 # Tests (optional, Qt Test or GTest)
 option(BUILD_TESTS "Build tests" ON)
