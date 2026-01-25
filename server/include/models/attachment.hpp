@@ -2,8 +2,8 @@
 
 #include <chrono>
 #include <cstdint>
-#include <string>
 #include <optional>
+#include <string>
 
 namespace messenger::models {
 
@@ -19,4 +19,4 @@ struct Attachment {
     std::chrono::system_clock::time_point uploaded_at;
 };
 
-} // namespace messenger::models
+}  // namespace messenger::models

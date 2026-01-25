@@ -2,8 +2,8 @@
 
 #include <chrono>
 #include <cstdint>
-#include <string>
 #include <optional>
+#include <string>
 
 namespace messenger::models {
 
@@ -18,4 +18,4 @@ struct Reaction {
     std::chrono::system_clock::time_point reacted_at;
 };
 
-} // namespace messenger::models
+}  // namespace messenger::models

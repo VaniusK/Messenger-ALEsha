@@ -2,8 +2,8 @@
 
 #include <chrono>
 #include <cstdint>
-#include <string>
 #include <optional>
+#include <string>
 
 namespace messenger::models {
 

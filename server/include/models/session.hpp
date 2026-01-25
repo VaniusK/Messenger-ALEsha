@@ -14,4 +14,4 @@ struct Session {
     std::chrono::system_clock::time_point expires_at;
 };
 
-} // namespace messenger::models
+}  // namespace messenger::models
