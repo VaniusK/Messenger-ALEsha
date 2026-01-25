@@ -15,8 +15,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build/server/_deps
-          key: server-deps-${{ hashFiles('server/CMakeLists.txt') }}
-          restore-keys: server-deps-
+          key: server-deps-v2-${{ hashFiles('server/CMakeLists.txt') }}
+          restore-keys: server-deps-v2-
       - name: Build server
         run: |
           cmake -B build/server -S server
@@ -32,8 +32,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build/client/_deps
-          key: client-deps-${{ hashFiles('client/CMakeLists.txt') }}
-          restore-keys: client-deps-
+          key: client-deps-v2-${{ hashFiles('client/CMakeLists.txt') }}
+          restore-keys: client-deps-v2-
       - name: Install Qt
         run: sudo apt-get install -y qt6-base-dev qt6-declarative-dev qml6-module-qtquick
       - name: Build client
