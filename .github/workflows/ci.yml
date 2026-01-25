@@ -42,6 +42,19 @@ jobs:
           cmake --build build/client
       - name: Test client
         run: ctest --test-dir build/client --output-on-failure
+    
+  run-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format-15
+      - name: Check formatting
+        run: |
+          FILES=$(find server client common -path "*/build/*" -prune -o \( -name "*.hpp" -o -name "*.cpp" \) -print 2>/dev/null)
+          if [ -n "$FILES" ]; then
+            clang-format-15 --dry-run --Werror $FILES
+          fi
 
   docker:
     runs-on: ubuntu-latest
