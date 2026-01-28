@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CHANNEL_HPP_
+#define CHANNEL_HPP_
 
 #include <chrono>
 #include <cstdint>
@@ -28,3 +29,5 @@ struct ChannelMember {
 };
 
 }  // namespace messenger::models
+
+#endif  // CHANNEL_HPP_

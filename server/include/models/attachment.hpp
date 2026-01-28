@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ATTACHMENT_HPP_
+#define ATTACHMENT_HPP_
 
 #include <chrono>
 #include <cstdint>
@@ -20,3 +21,5 @@ struct Attachment {
 };
 
 }  // namespace messenger::models
+
+#endif  // ATTACHMENT_HPP_

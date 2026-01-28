@@ -1,4 +1,5 @@
-#pragma once
+#ifndef USER_HPP_
+#define USER_HPP_
 
 #include <chrono>
 #include <cstdint>
@@ -18,3 +19,5 @@ struct User {
 };
 
 }  // namespace messenger::models
+
+#endif  // USER_HPP_

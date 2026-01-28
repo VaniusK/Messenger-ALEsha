@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CHAT_HPP_
+#define CHAT_HPP_
 
 #include <chrono>
 #include <cstdint>
@@ -28,3 +29,5 @@ struct ChatMember {
 };
 
 }  // namespace messenger::models
+
+#endif  // CHAT_HPP_

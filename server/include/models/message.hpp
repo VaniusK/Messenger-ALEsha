@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MESSAGE_HPP_
+#define MESSAGE_HPP_
 
 #include <chrono>
 #include <cstdint>
@@ -22,3 +23,5 @@ struct Message {
 };
 
 }  // namespace messenger::models
+
+#endif  // MESSAGE_HPP_

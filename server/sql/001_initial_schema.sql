@@ -66,15 +66,11 @@ CREATE TABLE channel_members (
 
 CREATE TABLE posts (
     id BIGSERIAL PRIMARY KEY,
-    channel_id BIGINT REFERENCES channels(id) ON DELETE CASCADE,  -- NULL for profiles
-    user_profile_id BIGINT REFERENCES users(id) ON DELETE CASCADE,   -- NULL for channels
+    channel_id BIGINT NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
     discussion_message_id BIGINT REFERENCES messages(id),   -- NULL if comments disabled
     text TEXT NOT NULL DEFAULT '',
     posted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     edited_at TIMESTAMP WITH TIME ZONE, -- NULL if not edited
-    
-    -- One of two should be not null
-    CHECK ((channel_id IS NOT NULL) != (user_profile_id IS NOT NULL))
 );
 
 CREATE TABLE attachments (
@@ -106,7 +102,7 @@ CREATE TABLE reactions (
     CHECK ((message_id IS NOT NULL) != (post_id IS NOT NULL)),
     
     -- User can't set two of the same emoji on the message.
-    -- Works correctly, each constraint blocks duplicated of its type
+    -- Works correctly, each constraint blocks duplicates of its type
     UNIQUE (message_id, user_id, emoji),
     UNIQUE (post_id, user_id, emoji)
 );
@@ -130,7 +126,6 @@ CREATE INDEX idx_chat_members_user_id ON chat_members(user_id);
 CREATE INDEX idx_channel_members_user_id ON channel_members(user_id);
 CREATE INDEX idx_posts_channel_id ON posts(channel_id);
 CREATE INDEX idx_posts_channel_time ON posts(channel_id, posted_at DESC);
-CREATE INDEX idx_posts_user_profile_id ON posts(user_profile_id);
 CREATE INDEX idx_attachments_message_id ON attachments(message_id);
 CREATE INDEX idx_attachments_post_id ON attachments(post_id);
 CREATE INDEX idx_messages_reply_to ON messages(reply_to_message_id);

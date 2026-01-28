@@ -1,4 +1,5 @@
-#pragma once
+#ifndef POST_HPP_
+#define POST_HPP_
 
 #include <chrono>
 #include <cstdint>
@@ -9,8 +10,7 @@ namespace messenger::models {
 
 struct Post {
     int64_t id{};
-    std::optional<int64_t> channel_id;             // NULL if profile post
-    std::optional<int64_t> user_profile_id;        // NULL if channel post
+    int64_t channel_id;
     std::optional<int64_t> discussion_message_id;  // NULL for disabled comments
     std::string text;
     std::chrono::system_clock::time_point posted_at;
@@ -19,3 +19,5 @@ struct Post {
 };
 
 }  // namespace messenger::models
+
+#endif  // POST_HPP_
