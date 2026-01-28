@@ -16,11 +16,15 @@ CREATE TABLE users (
 
 CREATE TABLE chats (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100),                        -- NULL for direct chats
+    name VARCHAR(100),
     type chat_type NOT NULL,
     avatar_path VARCHAR(255),
     description VARCHAR(500) NOT NULL DEFAULT '',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    direct_user1_id BIGINT REFERENCES users(id),
+    direct_user2_id BIGINT REFERENCES users(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    CHECK (direct_user1_id < direct_user2_id)
 );
 
 
@@ -130,3 +134,4 @@ CREATE INDEX idx_attachments_message_id ON attachments(message_id);
 CREATE INDEX idx_attachments_post_id ON attachments(post_id);
 CREATE INDEX idx_messages_reply_to ON messages(reply_to_message_id);
 CREATE INDEX idx_sessions_user_id ON sessions(user_id);
+CREATE UNIQUE INDEX idx_direct_chat_users ON chats(direct_user1_id, direct_user2_id) WHERE type = 'direct';
