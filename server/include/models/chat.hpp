@@ -17,6 +17,8 @@ struct Chat {
     ChatType type;
     std::optional<std::string> avatar_path;
     std::string description;
+    std::optional<int64_t> direct_user1_id;
+    std::optional<int64_t> direct_user2_id;
     std::chrono::system_clock::time_point created_at;
 };
 
