@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SESSION_HPP_
+#define SESSION_HPP_
 
 #include <chrono>
 #include <cstdint>
@@ -15,3 +16,5 @@ struct Session {
 };
 
 }  // namespace messenger::models
+
+#endif  // SESSION_HPP_

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef REACTION_HPP_
+#define REACTION_HPP_
 
 #include <chrono>
 #include <cstdint>
@@ -19,3 +20,5 @@ struct Reaction {
 };
 
 }  // namespace messenger::models
+
+#endif  // REACTION_HPP_

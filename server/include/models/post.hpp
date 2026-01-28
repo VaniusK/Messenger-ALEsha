@@ -1,4 +1,5 @@
-#pragma once
+#ifndef POST_HPP_
+#define POST_HPP_
 
 #include <chrono>
 #include <cstdint>
@@ -18,3 +19,5 @@ struct Post {
 };
 
 }  // namespace messenger::models
+
+#endif  // POST_HPP_
