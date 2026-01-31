@@ -14,6 +14,8 @@ struct User {
     std::string display_name;  // shown in UI, e.g. "John Doe"
     std::string password_hash;
     std::optional<std::string> avatar_path;
+    int64_t last_synced_message_id{0};
+    int64_t last_synced_post_id{0};
     std::string description;
     std::chrono::system_clock::time_point created_at;
 };

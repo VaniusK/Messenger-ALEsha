@@ -10,6 +10,8 @@ CREATE TABLE users (
     display_name VARCHAR(100) NOT NULL,       -- shown in UI, not unique
     password_hash VARCHAR(255) NOT NULL,
     avatar_path VARCHAR(255),
+    last_synced_message_id BIGINT DEFAULT 0,
+    last_synced_post_id BIGINT DEFAULT 0,
     description VARCHAR(500) NOT NULL DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
