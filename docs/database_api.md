@@ -55,6 +55,7 @@
 | `editMessage(message_id, new_text)`                                  | Редактировать сообщение       | `bool`            |
 | `deleteMessage(message_id)`                                          | Удалить сообщение             | `bool`            |
 | `markAsRead(chat_id, user_id, last_read_message_id)`                 | Обновить last_read_message_id | `void`            |
+| `pollMessages(user_id)`                 | Вернуть список новых сообщений | `vector<Message>`            |
 
 ### Пагинация
 
@@ -89,6 +90,7 @@
 | `createChannelPost(channel_id, text, enable_comments?)` | Создать пост в канале       | `Post`         |
 | `editPost(post_id, new_text)`                           | Редактировать пост          | `bool`         |
 | `deletePost(post_id)`                                   | Удалить пост                | `bool`         |
+| `pollPosts(user_id)`                 | Вернуть список новых постов | `vector<Post>`            |
 
 ### Комментарии
 
