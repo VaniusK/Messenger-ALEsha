@@ -3,3 +3,4 @@ experiments/
 */build/
 build/
 */.cache/
+.env
