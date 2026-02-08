@@ -76,7 +76,7 @@ CREATE TABLE posts (
     discussion_message_id BIGINT REFERENCES messages(id),   -- NULL if comments disabled
     text TEXT NOT NULL DEFAULT '',
     posted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    edited_at TIMESTAMP WITH TIME ZONE, -- NULL if not edited
+    edited_at TIMESTAMP WITH TIME ZONE -- NULL if not edited
 );
 
 CREATE TABLE attachments (
