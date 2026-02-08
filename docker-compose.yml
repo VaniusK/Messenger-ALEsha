@@ -9,5 +9,20 @@ services:
         - postgres_data:/var/lib/postgresql/data
         - ./server/sql:/docker-entrypoint-initdb.d
 
+  server:
+    build: ./server
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  client:
+    build: ./client
+    depends_on:
+      - server
+
+
 volumes:
   postgres_data:
