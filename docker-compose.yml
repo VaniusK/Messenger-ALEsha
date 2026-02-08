@@ -18,11 +18,6 @@ services:
     depends_on:
       - db
 
-  client:
-    build: ./client
-    depends_on:
-      - server
-
 
 volumes:
   postgres_data:
