@@ -10,7 +10,21 @@ RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
 RUN cmake --build build --parallel
 
 # Runtime stage
-FROM drogonframework/drogon
+FROM ubuntu:22.04
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libc-ares2 \
+    libjsoncpp25 \
+    libmariadb3 \
+    libsqlite3-0 \
+    libpq5 \
+    libhiredis0.14 \
+    uuid-dev \
+    openssl libssl3 \
+    zlib1g \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
