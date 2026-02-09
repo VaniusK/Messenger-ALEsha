@@ -1,12 +1,9 @@
-## Auth / Sessions (TODO)
+## Auth (TODO)
 
 | Метод                                          | Описание                        | Возвращает                     |
 | ---------------------------------------------- | ------------------------------- | ------------------------------ |
-| `registerUser(handle, display_name, password)` | Регистрация нового пользователя | `User` или ошибка              |
-| `loginUser(handle, password)`                  | Авторизация, создаёт сессию     | `Session + User`               |
-| `logoutUser(token)`                            | Удаляет сессию по токену        | `void`                         |
-| `validateSession(token)`                       | Проверка валидности токена      | `User?` (null если невалидный) |
-| `cleanupExpiredSessions()`                     | Удаление протухших сессий       | `void`                         |
+| `registerUser(handle, display_name, password)` | Регистрация нового пользователя | `bool`             |
+| `loginUser(handle, password)`                  | Авторизация    | `User?`               |
 
 ---
 
