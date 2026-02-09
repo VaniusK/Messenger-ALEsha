@@ -4,7 +4,7 @@
 FROM drogonframework/drogon AS builder
 
 WORKDIR /app
-COPY . .
+COPY ./alesha_server_app .
 
 RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
 RUN cmake --build build --parallel
