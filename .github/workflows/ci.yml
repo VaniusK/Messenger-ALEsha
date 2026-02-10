@@ -60,6 +60,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    - needs: [build-server, build-client, run-format]
     steps:
       - uses: actions/checkout@v4
       - name: Create test .env
@@ -69,7 +70,17 @@ jobs:
           echo "POSTGRES_DB=test_db" >> .env
       
       - name: Build all images
-        run: docker-compose build
+        run: docker-compose --profile build build
+
+      - name: Build client artifact
+        run: |
+          mkdir -p artifacts
+          docker-compose --profile build run client-build
+      
+      - name: Verify client build
+        run: |
+          ls -la artifacts/
+          test -f artifacts/client || (echo "Client binary not found!" && exit 1)
       
       - name: Start services
         run: docker-compose up -d

@@ -17,6 +17,13 @@ services:
       - "8080:8080"
     depends_on:
       - db
+  
+  client-build:
+    build: ./client
+    volumes:
+      - ./artifacts:/output
+    profiles:
+      - build
 
 
 volumes:
