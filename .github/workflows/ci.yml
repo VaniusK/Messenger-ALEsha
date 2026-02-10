@@ -70,12 +70,12 @@ jobs:
           echo "POSTGRES_DB=test_db" >> .env
       
       - name: Build all images
-        run: docker-compose --profile build build
+        run: docker compose --profile build build
 
       - name: Build client artifact
         run: |
           mkdir -p artifacts
-          docker-compose --profile build run client-build
+          docker compose --profile build run client-build
       
       - name: Verify client build
         run: |
@@ -83,13 +83,13 @@ jobs:
           test -f artifacts/client || (echo "Client binary not found!" && exit 1)
       
       - name: Start services
-        run: docker-compose up -d
+        run: docker compose up -d
     
       - name: Check services are running
         run: |
           sleep 10
-          docker-compose ps
-          docker-compose logs
+          docker compose ps
+          docker compose logs
       
       - name: Cleanup
-        run: docker-compose down -v
+        run: docker compose down -v
