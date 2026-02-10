@@ -1,6 +1,5 @@
-// Messenger Server Entry Point
+#include <iostream>
 
 int main() {
-    // TODO: Initialize server
     return 0;
 }
