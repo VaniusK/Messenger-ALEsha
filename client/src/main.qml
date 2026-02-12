@@ -1,13 +1,19 @@
 import QtQuick
- 
+
 Window {
-    width: 280
-    height: 200
+    id: window
+    width: 1280
+    height: 720
     visible: true
-    title: "Alesha"
- 
-    Text{
-        text: "Hello QML"
-        font.pixelSize: 22
+    title: "Messenger Alyosha"
+
+    Loader {
+        id: pageLoader
+        anchors.fill: parent
+        source: "sign_up.qml"
+    }
+
+    function push(page) {
+        pageLoader.source = page
     }
 }
