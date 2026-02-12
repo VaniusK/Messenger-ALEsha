@@ -3,3 +3,5 @@ experiments/
 */build/
 build/
 */.cache/
+.env
+artifacts/

@@ -76,7 +76,7 @@ CREATE TABLE posts (
     discussion_message_id BIGINT REFERENCES messages(id),   -- NULL if comments disabled
     text TEXT NOT NULL DEFAULT '',
     posted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    edited_at TIMESTAMP WITH TIME ZONE, -- NULL if not edited
+    edited_at TIMESTAMP WITH TIME ZONE -- NULL if not edited
 );
 
 CREATE TABLE attachments (
@@ -113,14 +113,6 @@ CREATE TABLE reactions (
     UNIQUE (post_id, user_id, emoji)
 );
 
-CREATE TABLE sessions (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-    token_hash VARCHAR(255) NOT NULL UNIQUE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    expires_at TIMESTAMP WITH TIME ZONE NOT NULL
-);
-
 ALTER TABLE chat_members 
 ADD CONSTRAINT fk_last_read_message 
 FOREIGN KEY (last_read_message_id) REFERENCES messages(id) ON DELETE SET NULL;
@@ -135,5 +127,4 @@ CREATE INDEX idx_posts_channel_time ON posts(channel_id, posted_at DESC);
 CREATE INDEX idx_attachments_message_id ON attachments(message_id);
 CREATE INDEX idx_attachments_post_id ON attachments(post_id);
 CREATE INDEX idx_messages_reply_to ON messages(reply_to_message_id);
-CREATE INDEX idx_sessions_user_id ON sessions(user_id);
 CREATE UNIQUE INDEX idx_direct_chat_users ON chats(direct_user1_id, direct_user2_id) WHERE type = 'direct';

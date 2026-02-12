@@ -1,30 +1,43 @@
 # Multi-stage build for messenger server
 
 # Build stage
-FROM ubuntu:24.04 AS builder
-
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+FROM drogonframework/drogon AS builder
 
 WORKDIR /app
-COPY . .
+COPY ./alesha_server_app .
 
 RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
 RUN cmake --build build --parallel
 
 # Runtime stage
-FROM ubuntu:24.04
+FROM ubuntu:22.04
 
-RUN apt-get update && apt-get install -y \
-    libstdc++6 \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libc-ares2 \
+    libjsoncpp25 \
+    libmariadb3 \
+    libsqlite3-0 \
+    libpq5 \
+    libhiredis0.14 \
+    uuid-dev \
+    openssl libssl3 \
+    zlib1g \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=builder /app/build/server .
 
-EXPOSE 8080
+# Copy executable
+COPY --from=builder /app/build/alesha_server_app .
 
-CMD ["./server"]
+# Copy config files if needed
+COPY --from=builder /app/config.json ./config.json
+COPY --from=builder /app/config.yaml ./config.yaml
+
+# Copy static files
+COPY --from=builder /app/index.html ./index.html
+
+EXPOSE 5555
+
+CMD ["./alesha_server_app"]
