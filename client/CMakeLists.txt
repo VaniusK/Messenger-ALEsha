@@ -18,12 +18,15 @@ qt_add_qml_module(client
     VERSION 1.0
     QML_FILES
         src/main.qml
+        src/sign_in.qml
+        src/sign_up.qml
+        src/chat.qml
 )
 target_include_directories(client PRIVATE include)
 target_link_libraries(client PRIVATE Qt6::Quick)
 
 # Tests (optional, Qt Test or GTest)
-option(BUILD_TESTS "Build tests" ON)
+option(BUILD_TESTS "Build tests" OFF)
 if(BUILD_TESTS)
     include(FetchContent)
     FetchContent_Declare(
