@@ -15,4 +15,4 @@ WORKDIR /usr/src/client
 COPY . .
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
 RUN cmake --build build --parallel
-CMD ["./build/client"]
+CMD ["cp", "/usr/src/client/build/client", "/output/client"]
