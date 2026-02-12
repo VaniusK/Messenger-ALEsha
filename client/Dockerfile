@@ -1,4 +1,5 @@
 FROM ubuntu:24.04
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -9,13 +10,9 @@ RUN apt-get update && apt-get install -y \
     libxkbcommon-dev \
     libvulkan-dev \
     && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /usr/src/client
 COPY . .
-<<<<<<< Updated upstream
-RUN clang++-15 -o client test_docker.cpp
-CMD ["cp", "client", "/output/client"]
-=======
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF
 RUN cmake --build build --parallel
 CMD ["./build/client"]
->>>>>>> Stashed changes
