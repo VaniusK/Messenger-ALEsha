@@ -165,30 +165,38 @@ Rectangle {
                 onReleased: parent.opacity = 1.0
 
                 onClicked: {
+                    console.log("[Sign Up] Sign Up button clicked")
                     errorBox.visible = false
+                    
                     if (handleField.text.length == 0) {
+                        console.log("[Sign Up] Validation Error: Handle is empty")
                         errorText.text = "Введите логин!"
                         errorBox.visible = true
                         errorTimer.restart()
                         return
                     } else if (displayNameField.text.length == 0) {
+                        console.log("[Sign Up] Validation Error: Display Name is empty")
                         errorText.text = "Введите имя!"
                         errorBox.visible = true
                         errorTimer.restart()
                         return
                     } else if (passwordField.text.length == 0) {
+                        console.log("[Sign Up] Validation Error: Password is empty")
                         errorText.text = "Введите пароль!"
                         errorBox.visible = true
                         errorTimer.restart()
                         return
                     } else if (passwordField.text != repeatPasswordField.text) {
+                        console.log("[Sign Up] Validation Error: Passwords do not match")
                         errorText.text = "Пароли не совпадают!"
                         errorBox.visible = true
                         errorTimer.restart()
                         return
                     }
-                
-                    console.log("Регистрация :", handleField.text)
+
+                    console.log("[Sign Up] Validation Successful. Handle:", handleField.text, "Display Name:", displayNameField.text)
+                    console.log("[Sign Up] Redirecting to Login screen.")
+
                     var loader = root.parent
                     if (loader) {
                         loader.source = "sign_in.qml"
@@ -209,6 +217,7 @@ Rectangle {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
+                    console.log("[Sign Up] Navigating to Login screen (already have account)")
                     var loader = root.parent
                     if (loader) {
                         loader.source = "sign_in.qml"
