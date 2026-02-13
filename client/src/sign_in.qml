@@ -111,16 +111,24 @@ Rectangle {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
+                    console.log("[Login] Sign In button clicked")
                     errorBox.visible = false
                     if (handleField.text.length == 0) {
+                        console.log("[Login] Validation Error: Handle is empty")
                         errorText.text = "Ошибка! Введите логин"
                         errorBox.visible = true
                         errorTimer.restart()
-                    } else if (passwordField.length == 0) {
+                    } else if (passwordField.text.length == 0) { // Fixed .length access for TextInput
+                        console.log("[Login] Validation Error: Password is empty")
                         errorText.text = "Ошибка! Введите пароль"
                         errorBox.visible = true
                         errorTimer.restart()
                     } else {
+                        console.log("[Login] Validation Successful. Attempting login for:", handleField.text)
+                        
+                        // Note: In real app, we would wait for server response here
+                        console.log("[Login] Login successful (mock). Navigating to Chat.")
+                        
                         var loader = root.parent
                         if (loader) {
                             loader.source = "chat.qml"
@@ -152,6 +160,7 @@ Rectangle {
                 onPressed: parent.opacity = 0.75
                 onReleased: parent.opacity = 1.0
                 onClicked: {
+                    console.log("[Login] Navigating to Registration screen")
                     var loader = root.parent
                     if (loader) {
                         loader.source = "sign_up.qml"

@@ -44,6 +44,7 @@ Rectangle {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
+                    console.log("[Chat] Log Out clicked. Navigating to Login screen.")
                     var loader = root.parent
                     if (loader) {
                         loader.source = "sign_in.qml"
