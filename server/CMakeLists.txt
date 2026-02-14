@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(alesha_server_app CXX)
 
 include(CheckIncludeFileCXX)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 check_include_file_cxx(any HAS_ANY)
 check_include_file_cxx(string_view HAS_STRING_VIEW)
@@ -58,7 +59,7 @@ drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views
 
 target_include_directories(${PROJECT_NAME}
                            PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-                                   ${CMAKE_CURRENT_SOURCE_DIR}/models)
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_sources(${PROJECT_NAME}
                PRIVATE
                ${SRC_DIR}
