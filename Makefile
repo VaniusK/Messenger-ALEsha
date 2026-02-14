@@ -8,5 +8,5 @@ format:
 run_docker:
 	docker compose up -d --build
 
-build_client
+build_client:
 	docker compose --profile build run --build client-build
