@@ -1,2 +1,7 @@
 build/
 .cache/
+.git/
+.gitignore
+include/
+sql/
+.vscode/
