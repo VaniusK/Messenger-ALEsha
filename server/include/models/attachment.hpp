@@ -27,6 +27,8 @@ struct Attachment {
         object.id = row["id"].as<int64_t>();
         object.message_id =
             messenger::utils::fromNullable<int64_t>(row["message_id"]);
+        object.post_id =
+            messenger::utils::fromNullable<int64_t>(row["post_id"]);
         object.file_type = row["file_type"].as<std::string>();
         object.file_size = row["file_size"].as<int64_t>();
         object.file_path = row["file_path"].as<std::string>();
