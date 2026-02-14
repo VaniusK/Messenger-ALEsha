@@ -3,8 +3,7 @@
 
 | Метод                                          | Описание                        | Возвращает                     |
 | ---------------------------------------------- | ------------------------------- | ------------------------------ |
-| `registerUser(handle, display_name, password)` | Регистрация нового пользователя | `bool`             |
-| `loginUser(handle, password)`                  | Авторизация    | `User?`               |
+| `registerUser(handle, display_name, password_hash)` | Регистрация нового пользователя | `bool`             |
 
 ---
 
@@ -63,6 +62,7 @@
 | `getChatById(chat_id)`                                  | Получить чат по ID                         | `Chat?`               |
 | `getUserChats(user_id)`                                 | Список чатов пользователя                  | `vector<ChatPreview>` |
 | `getOrCreateDirectChat(user1_id, user2_id)`             | Получить или создать личку (идемпотентно!) | `Chat`                |
+| `getDirectChat(user1_id, user2_id)`             | Получить личку | `Chat?`                |
 | `createGroupChat(name, creator_id, member_ids(vector<id>))`         | Создать групповой чат                      | `Chat`                |
 | `getChatMembers(chat_id)`                               | Список участников чата                     | `vector<ChatMember>`  |
 | `addChatMember(chat_id, user_id, role)`                 | Добавить участника                         | `bool`                |
