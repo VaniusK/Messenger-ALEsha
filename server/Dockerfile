@@ -33,10 +33,6 @@ COPY --from=builder /app/build/alesha_server_app .
 
 # Copy config files if needed
 COPY --from=builder /app/config.json .
-# COPY --from=builder /app/config.yaml ./config.yaml
-
-# Copy static files
-COPY --from=builder /app/index.html .
 
 EXPOSE 5555
 
