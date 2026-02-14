@@ -5,4 +5,3 @@ build/
 */.cache/
 .env
 artifacts/
-drogon/
