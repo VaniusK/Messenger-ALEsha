@@ -7,7 +7,7 @@
 namespace messenger::utils {
 
 template <typename T>
-std::optional<T> fromNullable(const drogon::orm::Field& field) {
+std::optional<T> fromNullable(const drogon::orm::Field &field) {
     if (!field.isNull()) {
         return field.as<T>();
     }
