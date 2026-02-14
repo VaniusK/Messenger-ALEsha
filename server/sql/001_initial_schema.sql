@@ -81,7 +81,9 @@ CREATE TABLE posts (
 
 CREATE TABLE attachments (
     id BIGSERIAL PRIMARY KEY,
+    -- XOR
     message_id BIGINT REFERENCES messages(id) ON DELETE CASCADE,
+    post_id BIGINT REFERENCES posts(id) ON DELETE CASCADE,
     
     -- Metadata
     file_type VARCHAR(50) NOT NULL,  -- 'image/jpeg', 'video/mp4', etc
@@ -89,6 +91,8 @@ CREATE TABLE attachments (
     file_path VARCHAR(500) NOT NULL, -- path in S3/MinIO/whatever
     
     uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    CHECK ((message_id IS NOT NULL) != (post_id IS NOT NULL))
 );
 
 CREATE TABLE reactions (
