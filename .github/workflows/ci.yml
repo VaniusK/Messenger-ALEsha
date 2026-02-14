@@ -19,6 +19,7 @@ jobs:
           restore-keys: server-deps-v2-
       - name: Build server
         run: |
+          sudo apt-get install -y libjsoncpp-dev uuid-dev zlib1g-dev libssl-dev
           cmake -B build/server -S server
           cmake --build build/server
       - name: Test server
