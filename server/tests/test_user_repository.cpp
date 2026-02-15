@@ -1,6 +1,6 @@
+#include <drogon/drogon.h>
 #include <drogon/utils/coroutine.h>
 #include <gtest/gtest.h>
-#include <drogon/drogon.h>
 #include <repositories/UserRepository.hpp>
 #include <vector>
 
@@ -12,31 +12,28 @@ using namespace drogon::orm;
 
 void runDrogon() {
     app().addListener("0.0.0.0", 5555);
-    app().run(); 
+    app().run();
 }
-
-
 
 class DbTestSuit : public ::testing::Test {
 public:
     static void SetUpTestSuite() {
         app().createDbClient(
-            "postgresql",             // rdbms
+            "postgresql",  // rdbms
             std::getenv("POSTGRES_HOST") ?: "localhost",
-            5432,                     // port
+            5432,  // port
             std::getenv("POSTGRES_DB") ?: "messenger_db",
             std::getenv("POSTGRES_USER") ?: "messenger",
             std::getenv("POSTGRES_PASSWORD") ?: "",
-            1                         // connections
+            1  // connections
         );
 
         std::thread serverThread(runDrogon);
         serverThread.detach();
         std::this_thread::sleep_for(std::chrono::seconds(1));
-
     }
 
-    static void TearDownTestSuite()  {
+    static void TearDownTestSuite() {
         app().quit();
     }
 
@@ -44,13 +41,12 @@ public:
         auto dbClient = app().getDbClient();
         dbClient->execSqlSync("TRUNCATE TABLE users CASCADE;");
     }
-
 };
 
-
-
 TEST_F(DbTestSuit, TestCreate) {
-    bool res = sync_wait(UserRepository::create("konobeitsev3", "Ivan_konobeitsev", "hash_idk"));
+    bool res = sync_wait(
+        UserRepository::create("konobeitsev3", "Ivan_konobeitsev", "hash_idk")
+    );
     EXPECT_TRUE(res);
     auto users = sync_wait(UserRepository::getAll());
     EXPECT_EQ(users.size(), 1);
@@ -59,7 +55,9 @@ TEST_F(DbTestSuit, TestCreate) {
 }
 
 TEST_F(DbTestSuit, TestGetByHandle) {
-    bool res = sync_wait(UserRepository::create("konobeitsev3", "Ivan_konobeitsev", "hash_idk"));
+    bool res = sync_wait(
+        UserRepository::create("konobeitsev3", "Ivan_konobeitsev", "hash_idk")
+    );
     EXPECT_TRUE(res);
     auto result = sync_wait(UserRepository::getByHandle("konobeitsev3"));
     EXPECT_TRUE(result.has_value());
@@ -68,7 +66,9 @@ TEST_F(DbTestSuit, TestGetByHandle) {
 }
 
 TEST_F(DbTestSuit, TestGetById) {
-    bool res = sync_wait(UserRepository::create("konobeitsev3", "Ivan_konobeitsev", "hash_idk"));
+    bool res = sync_wait(
+        UserRepository::create("konobeitsev3", "Ivan_konobeitsev", "hash_idk")
+    );
     EXPECT_TRUE(res);
     auto result = sync_wait(UserRepository::getByHandle("konobeitsev3"));
     EXPECT_TRUE(result.has_value());
@@ -80,11 +80,12 @@ TEST_F(DbTestSuit, TestGetById) {
 }
 
 TEST_F(DbTestSuit, TestCreateSameHandle) {
-    bool res = sync_wait(UserRepository::create("konobeitsev3", "Ivan_konobeitsev", "hash_idk"));
+    bool res = sync_wait(
+        UserRepository::create("konobeitsev3", "Ivan_konobeitsev", "hash_idk")
+    );
     EXPECT_TRUE(res);
-    bool res2 = sync_wait(UserRepository::create("konobeitsev3", "Ivan_konobeitsev", "hash_idk"));
+    bool res2 = sync_wait(
+        UserRepository::create("konobeitsev3", "Ivan_konobeitsev", "hash_idk")
+    );
     EXPECT_FALSE(res2);
 }
-
-
-
