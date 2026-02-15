@@ -5,11 +5,10 @@
 #include <json/value.h>
 #include <optional>
 #include "repositories/UserRepository.hpp"
+#include "models/Users.h"
 #include "crypto/bcrypt.h"
-#include "models/user.hpp"
 
 using namespace api::v1;
-
 using namespace messenger::repositories;
 
 Task<HttpResponsePtr> auth::registerUser(HttpRequestPtr req) {
@@ -42,12 +41,12 @@ Task<HttpResponsePtr> auth::registerUser(HttpRequestPtr req) {
         co_return resp;
     }
     std::optional<User> user = co_await
-    repo.getByHandle((*req_json)["handle"].asString());
+    repo.getByHandle(std::string((*req_json)["handle"].asString()));
     if (user == std::nullopt) {
         std::string password_hash =
             bcrypt::generateHash((*req_json)["password"].asString());
-        bool success = co_await repo.create((*req_json)["handle"].asString(),
-        (*req_json)["display_name"].asString() , password_hash);
+        bool success = co_await repo.create(std::string((*req_json)["handle"].asCString()),
+        std::string((*req_json)["display_name"].asCString()) , password_hash);
         if (success) {
             response_json["message"] = "New user was successfully created";
             response_json["password_hash"] = password_hash;
@@ -96,14 +95,14 @@ Task<HttpResponsePtr> auth::loginUser(HttpRequestPtr req) {
         co_return resp;
     }
     std::optional<User> user =
-        co_await repo.getByHandle((*req_json)["handle"].asString());
+        co_await repo.getByHandle(std::string((*req_json)["handle"].asCString()));
     if (user == std::nullopt) {
         response_json["message"] = "Login error: Invalid handle or password";
         HttpResponsePtr resp = HttpResponse::newHttpJsonResponse(response_json);
         resp->setStatusCode(drogon::k401Unauthorized);
         co_return resp;
     } else {
-        if (!bcrypt::validatePassword((*req_json)["password"].asString(), user->password_hash)) {
+        if (!bcrypt::validatePassword(std::string((*req_json)["password"].asCString()), user->getValueOfPasswordHash())) {
             response_json["message"] = "Login error: Invalid handle or password";
             HttpResponsePtr resp = HttpResponse::newHttpJsonResponse(response_json);
             resp->setStatusCode(drogon::k401Unauthorized);

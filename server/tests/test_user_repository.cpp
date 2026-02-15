@@ -1,7 +1,7 @@
 #include <drogon/drogon.h>
 #include <drogon/utils/coroutine.h>
 #include <gtest/gtest.h>
-#include <repositories/UserRepository.hpp>
+#include "repositories/UserRepository.hpp"
 #include <vector>
 
 using UserRepository = messenger::repositories::UserRepository;

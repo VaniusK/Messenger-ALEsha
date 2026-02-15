@@ -31,6 +31,9 @@ WORKDIR /app
 # Copy executable
 COPY --from=builder /app/build/alesha_server_app .
 
+# Copy logs folder, will be empty in non-release
+RUN ["mkdir", "logs"] 
+
 # Copy tests executable
 COPY --from=builder /app/build/server_tests .
 

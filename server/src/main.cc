@@ -1,6 +1,7 @@
 #include <drogon/drogon.h>
 #include <iostream>
 int main() {
+    setbuf(stdout, nullptr); // disabling stdout buffer for real-time logs in console(comment on realease and turn on file logs)
     //Set HTTP listener address and port
     std::cout << "Starting server on port 5555" << std::endl;
     // drogon::app().addListener("0.0.0.0", 5555);
