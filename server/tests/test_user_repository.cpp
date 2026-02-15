@@ -1,8 +1,8 @@
 #include <drogon/drogon.h>
 #include <drogon/utils/coroutine.h>
 #include <gtest/gtest.h>
-#include "repositories/UserRepository.hpp"
 #include <vector>
+#include "repositories/UserRepository.hpp"
 
 using UserRepository = messenger::repositories::UserRepository;
 using User = drogon_model::messenger_db::Users;

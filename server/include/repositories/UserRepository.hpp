@@ -1,8 +1,8 @@
 #pragma once
-#include "models/Users.h"
 #include <drogon/drogon.h>
 #include <drogon/orm/CoroMapper.h>
 #include <drogon/utils/coroutine.h>
+#include "models/Users.h"
 
 namespace messenger::repositories {
 
