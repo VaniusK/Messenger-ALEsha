@@ -2,8 +2,7 @@
 #include <drogon/drogon.h>
 #include <drogon/orm/CoroMapper.h>
 #include <drogon/utils/coroutine.h>
-#include <models/Users.h>
-#include <optional>
+#include "models/Users.h"
 
 namespace messenger::repositories {
 

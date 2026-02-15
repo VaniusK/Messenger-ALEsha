@@ -2,6 +2,5 @@ build/
 .cache/
 .git/
 .gitignore
-
 sql/
 .vscode/

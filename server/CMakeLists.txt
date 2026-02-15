@@ -7,15 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 check_include_file_cxx(any HAS_ANY)
 check_include_file_cxx(string_view HAS_STRING_VIEW)
 check_include_file_cxx(coroutine HAS_COROUTINE)
-if (NOT "${CMAKE_CXX_STANDARD}" STREQUAL "")
-    # Do nothing
-elseif (HAS_ANY AND HAS_STRING_VIEW AND HAS_COROUTINE)
-    set(CMAKE_CXX_STANDARD 20)
-elseif (HAS_ANY AND HAS_STRING_VIEW)
-    set(CMAKE_CXX_STANDARD 20)
-else ()
-    set(CMAKE_CXX_STANDARD 20)
-endif ()
+set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -42,6 +34,9 @@ else ()
     message(STATUS "use c++20")
 endif ()
 
+aux_source_directory(src SRC_SRC)
+aux_source_directory(src/repositories REPO_SRC)
+
 aux_source_directory(controllers CTL_SRC)
 aux_source_directory(filters FILTER_SRC)
 aux_source_directory(plugins PLUGIN_SRC)
@@ -60,9 +55,10 @@ drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views
 target_include_directories(${PROJECT_NAME}
                            PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
                                    ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_sources(${PROJECT_NAME}
-               PRIVATE
-               ${SRC_DIR}
+target_sources(${PROJECT_NAME} 
+                PRIVATE
+               ${SRC_SRC}
+               ${REPO_SRC}
                ${CTL_SRC}
                ${FILTER_SRC}
                ${PLUGIN_SRC}
@@ -92,10 +88,10 @@ if(BUILD_TESTS)
         tests/test_user_repository.cpp
     )
     target_sources(server_tests PRIVATE src/repositories/UserRepository.cpp)
-    target_include_directories(server_tests PRIVATE include)
+    target_include_directories(server_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
     target_link_libraries(server_tests GTest::gtest_main)
     target_link_libraries(server_tests Drogon::Drogon)
-    aux_source_directory(include/models DROGON_MODELS)
+    aux_source_directory(models DROGON_MODELS)
     target_sources(server_tests PRIVATE ${DROGON_MODELS})
     
     include(GoogleTest)
