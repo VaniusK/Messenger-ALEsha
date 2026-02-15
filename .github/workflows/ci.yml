@@ -75,5 +75,8 @@ jobs:
           docker compose ps
           docker compose logs
       
+      - name: Run server tests
+        run: docker compose run test-server
+      
       - name: Cleanup
         run: docker compose down -v
