@@ -17,7 +17,6 @@ void runDrogon() {
 
 class DbTestSuit : public ::testing::Test {
 public:
-
     static inline std::thread serverThread_;
 
     static void SetUpTestSuite() {
