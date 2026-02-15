@@ -17,6 +17,9 @@ void runDrogon() {
 
 class DbTestSuit : public ::testing::Test {
 public:
+
+    static inline std::thread serverThread_;
+
     static void SetUpTestSuite() {
         app().createDbClient(
             "postgresql",  // rdbms
@@ -28,13 +31,13 @@ public:
             1  // connections
         );
 
-        std::thread serverThread(runDrogon);
-        serverThread.detach();
+        serverThread_ = std::thread(runDrogon);
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     static void TearDownTestSuite() {
         app().quit();
+        serverThread_.join();
     }
 
     void TearDown() override {
