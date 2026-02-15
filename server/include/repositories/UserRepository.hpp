@@ -11,16 +11,16 @@ using User = drogon_model::messenger_db::Users;
 
 class UserRepository {
 public:
-    drogon::Task<std::optional<User>> getById(int id);
-    drogon::Task<std::optional<User>> getByHandle(std::string handle);
-    drogon::Task<bool> create(
+    static drogon::Task<std::optional<User>> getById(int id);
+    static drogon::Task<std::optional<User>> getByHandle(std::string handle);
+    static drogon::Task<bool> create(
         std::string handle,
         std::string display_name,
         std::string password_hash
     );
 
 private:
-    drogon::orm::CoroMapper<User> getMapper() {
+    static drogon::orm::CoroMapper<User> getMapper() {
         return drogon::orm::CoroMapper<User>(drogon::app().getDbClient());
     }
 };
