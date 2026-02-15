@@ -4,5 +4,6 @@ experiments/
 build/
 */.cache/
 .env
+model.json
 artifacts/
-server/drogo
+server/drogon/

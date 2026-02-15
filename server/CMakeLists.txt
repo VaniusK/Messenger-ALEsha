@@ -26,10 +26,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon)
 
 # ##############################################################################
 
-if (CMAKE_CXX_STANDARD LESS 17)
-    message(FATAL_ERROR "c++17 or higher is required")
-elseif (CMAKE_CXX_STANDARD LESS 20)
-    message(STATUS "use c++17")
+if (CMAKE_CXX_STANDARD LESS 20)
+    message(FATAL_ERROR "c++20 or higher is required")
+elseif (CMAKE_CXX_STANDARD LESS 23)
+    message(STATUS "use c++20")
 else ()
     message(STATUS "use c++20")
 endif ()
@@ -82,9 +82,15 @@ if(BUILD_TESTS)
 
     enable_testing()
     
-    add_executable(server_tests tests/test_placeholder.cpp)
+    add_executable(server_tests 
+        tests/test_user_repository.cpp
+    )
+    target_sources(server_tests PRIVATE src/repositories/UserRepository.cpp)
     target_include_directories(server_tests PRIVATE include)
     target_link_libraries(server_tests GTest::gtest_main)
+    target_link_libraries(server_tests Drogon::Drogon)
+    aux_source_directory(include/models DROGON_MODELS)
+    target_sources(server_tests PRIVATE ${DROGON_MODELS})
     
     include(GoogleTest)
     gtest_discover_tests(server_tests)
