@@ -19,7 +19,6 @@ public:
         std::string password_hash
     );
 
-private:
     static drogon::orm::CoroMapper<User> getMapper() {
         return drogon::orm::CoroMapper<User>(drogon::app().getDbClient());
     }
