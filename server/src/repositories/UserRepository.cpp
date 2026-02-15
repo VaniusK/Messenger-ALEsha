@@ -1,5 +1,5 @@
-#include <drogon/orm/Criteria.h>
 #include "repositories/UserRepository.hpp"
+#include <drogon/orm/Criteria.h>
 #include <stdexcept>
 
 using User = drogon_model::messenger_db::Users;
