@@ -6,4 +6,4 @@ build/
 .env
 model.json
 artifacts/
-server/drogon
+server/drogon/
