@@ -1,4 +1,5 @@
 #include "api_v1_users.h"
+#include <drogon/drogon.h>
 
 using namespace api::v1;
 

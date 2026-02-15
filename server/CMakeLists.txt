@@ -34,6 +34,8 @@ else ()
     message(STATUS "use c++20")
 endif ()
 
+aux_source_directory(src SRC_SRC)
+
 aux_source_directory(controllers CTL_SRC)
 aux_source_directory(filters FILTER_SRC)
 aux_source_directory(plugins PLUGIN_SRC)
@@ -54,7 +56,7 @@ target_include_directories(${PROJECT_NAME}
                                    ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_sources(${PROJECT_NAME}
                PRIVATE
-               ${SRC_DIR}
+               ${SRC_SRC}
                ${CTL_SRC}
                ${FILTER_SRC}
                ${PLUGIN_SRC}
