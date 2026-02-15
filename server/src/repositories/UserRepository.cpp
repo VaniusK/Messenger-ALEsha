@@ -38,6 +38,18 @@ Task<std::optional<User>> UserRepository::getByHandle(std::string handle) {
     }
 }
 
+Task<std::vector<User>> UserRepository::getAll() {
+    CoroMapper<User> mapper = getMapper();
+
+    try {
+        std::vector<User> users = co_await mapper.findAll();
+
+        co_return users;
+    } catch (const DrogonDbException &e) {
+        throw std::runtime_error("Database error");
+    }
+}
+
 Task<bool> UserRepository::create(
     std::string handle,
     std::string display_name,

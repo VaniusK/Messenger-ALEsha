@@ -13,6 +13,7 @@ class UserRepository {
 public:
     static drogon::Task<std::optional<User>> getById(int id);
     static drogon::Task<std::optional<User>> getByHandle(std::string handle);
+    static drogon::Task<std::vector<User>> getAll();
     static drogon::Task<bool> create(
         std::string handle,
         std::string display_name,
