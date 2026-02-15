@@ -34,12 +34,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install clang-format
-        run: sudo apt-get update && sudo apt-get install -y clang-format-15
+        run: sudo apt-get update && sudo apt-get install -y clang-format-17
       - name: Check formatting
         run: |
           FILES=$(find server client common  -path "*/build/*" -prune -o  -path "server/drogon" -prune -o  -path "server/src/bcrypt.cpp" -prune -o  -path "server/src/blowfish.cpp" -prune -o \( -name "*.hpp" -o -name "*.cpp" \) -print 2>/dev/null)
           if [ -n "$FILES" ]; then
-            clang-format-15 --dry-run --Werror $FILES
+            clang-format-17 --dry-run --Werror $FILES
           fi
 
   docker:
