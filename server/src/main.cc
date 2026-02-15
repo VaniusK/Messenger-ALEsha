@@ -11,6 +11,15 @@ int main() {
     catch(const std::exception& e){
         drogon::app().loadConfigFile("../config.json");
     }
+    drogon::app().createDbClient(
+        "postgresql",             // rdbms
+        std::getenv("POSTGRES_HOST") ?: "localhost",
+        5432,                     // port
+        std::getenv("POSTGRES_DB") ?: "messenger_db",
+        std::getenv("POSTGRES_USER") ?: "messenger",
+        std::getenv("POSTGRES_PASSWORD") ?: "",
+        1                         // connections
+    );
     drogon::app().run();
     return 0;
 }
