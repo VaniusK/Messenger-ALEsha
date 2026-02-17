@@ -12,8 +12,7 @@ class UserRepositoryInterface {
 public:
     virtual ~UserRepositoryInterface() = default;
     virtual drogon::Task<std::optional<User>> getById(int id) = 0;
-    virtual drogon::Task<std::optional<User>> getByHandle(
-        std::string handle
+    virtual drogon::Task<std::optional<User>> getByHandle(std::string handle
     ) = 0;
     virtual drogon::Task<std::vector<User>> getAll() = 0;
     virtual drogon::Task<bool> create(

@@ -46,7 +46,6 @@ public:
 
 protected:
     UserRepository user_repo_;
-
 };
 
 TEST_F(DbTestSuit, TestCreate) {
