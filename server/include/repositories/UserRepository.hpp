@@ -8,18 +8,33 @@ namespace messenger::repositories {
 
 using User = drogon_model::messenger_db::Users;
 
-class UserRepository {
+class UserRepositoryInterface {
 public:
-    static drogon::Task<std::optional<User>> getById(int id);
-    static drogon::Task<std::optional<User>> getByHandle(std::string handle);
-    static drogon::Task<std::vector<User>> getAll();
-    static drogon::Task<bool> create(
+    virtual ~UserRepositoryInterface() = default;
+    virtual drogon::Task<std::optional<User>> getById(int id) = 0;
+    virtual drogon::Task<std::optional<User>> getByHandle(std::string handle
+    ) = 0;
+    virtual drogon::Task<std::vector<User>> getAll() = 0;
+    virtual drogon::Task<bool> create(
         std::string handle,
         std::string display_name,
         std::string password_hash
-    );
+    ) = 0;
+};
 
-    static drogon::orm::CoroMapper<User> getMapper() {
+class UserRepository : public UserRepositoryInterface {
+public:
+    drogon::Task<std::optional<User>> getById(int id) override;
+    drogon::Task<std::optional<User>> getByHandle(std::string handle) override;
+    drogon::Task<std::vector<User>> getAll() override;
+    drogon::Task<bool> create(
+        std::string handle,
+        std::string display_name,
+        std::string password_hash
+    ) override;
+
+private:
+    drogon::orm::CoroMapper<User> getMapper() {
         return drogon::orm::CoroMapper<User>(drogon::app().getDbClient());
     }
 };
