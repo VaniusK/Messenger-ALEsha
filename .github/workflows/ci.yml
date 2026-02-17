@@ -81,7 +81,7 @@ jobs:
     
       - name: Check services are running
         run: |
-          sleep 10
+          sleep 3
           docker compose ps
           docker compose logs
       
