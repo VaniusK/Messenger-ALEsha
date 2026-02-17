@@ -66,7 +66,6 @@ jobs:
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
 
-      # Images are now built and cached. 'docker compose run' will use them.
         run: |
           mkdir -p artifacts
           docker compose --profile build run client-build
