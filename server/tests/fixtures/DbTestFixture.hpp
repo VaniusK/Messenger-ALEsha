@@ -1,6 +1,7 @@
 #include <drogon/drogon.h>
 #include <drogon/utils/coroutine.h>
 #include <gtest/gtest.h>
+#include <chrono>
 #include <vector>
 #include "repositories/UserRepository.hpp"
 
@@ -27,11 +28,19 @@ public:
             std::getenv("POSTGRES_DB") ?: "messenger_db",
             std::getenv("POSTGRES_USER") ?: "messenger",
             std::getenv("POSTGRES_PASSWORD") ?: "",
-            1  // connections
+            10  // connections
         );
 
         serverThread_ = std::thread(runDrogon);
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        auto start = std::chrono::steady_clock::now();
+        while (!app().isRunning()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            if (std::chrono::steady_clock::now() - start >
+                std::chrono::seconds(10)) {
+                throw std::runtime_error("Server failed to start in 10 seconds"
+                );
+            }
+        }
     }
 
     static void TearDownTestSuite() {
@@ -39,9 +48,13 @@ public:
         serverThread_.join();
     }
 
-    void TearDown() override {
+    void SetUp() override {
         auto dbClient = app().getDbClient();
+        dbClient->execSqlSync("SET client_min_messages TO WARNING;");
         dbClient->execSqlSync("TRUNCATE TABLE users CASCADE;");
+    }
+
+    void TearDown() override {
     }
 
 protected:
