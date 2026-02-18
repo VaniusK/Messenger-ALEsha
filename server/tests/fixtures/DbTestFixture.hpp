@@ -37,8 +37,7 @@ public:
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             if (std::chrono::steady_clock::now() - start >
                 std::chrono::seconds(10)) {
-                throw std::runtime_error(
-                    "Server failed to start in 10 seconds"
+                throw std::runtime_error("Server failed to start in 10 seconds"
                 );
             }
         }
