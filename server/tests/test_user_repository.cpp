@@ -79,7 +79,7 @@ TEST_F(DbTestSuit, TestGetById) {
 
 TEST_F(DbTestSuit, TestGetByIdFail) {
     /* When user with given id doesn't exist,
-    getByHandle() should return nullopt */
+    getById() should return nullopt */
     bool res = sync_wait(
         user_repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk")
     );
