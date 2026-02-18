@@ -1,12 +1,3 @@
-## Auth(TODO)
-
-
-| Метод                                          | Описание                        | Возвращает                     |
-| ---------------------------------------------- | ------------------------------- | ------------------------------ |
-| `registerUser(handle, display_name, password_hash)` | Регистрация нового пользователя | `bool`             |
-
----
-
 ## Users(TODO)
 
 ### Model: User
@@ -25,11 +16,12 @@
 
 | Метод                                                              | Описание                            | Возвращает     |
 | ------------------------------------------------------------------ | ----------------------------------- | -------------- |
-| `getUserById(user_id)`                                             | Получить пользователя по ID         | `User?`        |
-| `getUserByHandle(handle)`                                          | Поиск по @handle                    | `User?`        |
-| `getUsersByIds(vector<id>)`                                        | Batch-загрузка пользователей        | `vector<User>` |
-| `searchUsers(query, limit)`                                        | Поиск пользователей по имени/handle | `vector<User>` |
-| `updateUserProfile(user_id, display_name?, avatar?, description?)` | Обновить профиль                    | `bool`         |
+| `create(handle, display_name, password_hash)` | Регистрация нового пользователя | `bool`             |
+| `getById(user_id)`                                             | Получить пользователя по ID         | `User?`        |
+| `getByHandle(handle)`                                          | Поиск по @handle                    | `User?`        |
+| `getByIds(vector<id>)`                                        | Batch-загрузка пользователей        | `vector<User>` |
+| `search(query, limit)`                                        | Поиск пользователей по имени/handle | `vector<User>` |
+| `updateProfile(user_id, display_name?, avatar?, description?)` | Обновить профиль                    | `bool`         |
 
 ---
 
@@ -59,16 +51,16 @@
 
 | Метод                                                   | Описание                                   | Возвращает            |
 | ------------------------------------------------------- | ------------------------------------------ | --------------------- |
-| `getChatById(chat_id)`                                  | Получить чат по ID                         | `Chat?`               |
+| `getById(chat_id)`                                  | Получить чат по ID                         | `Chat?`               |
 | `getUserChats(user_id)`                                 | Список чатов пользователя                  | `vector<ChatPreview>` |
-| `getOrCreateDirectChat(user1_id, user2_id)`             | Получить или создать личку (идемпотентно!) | `Chat`                |
-| `getDirectChat(user1_id, user2_id)`             | Получить личку | `Chat?`                |
-| `createGroupChat(name, creator_id, member_ids(vector<id>))`         | Создать групповой чат                      | `Chat`                |
-| `getChatMembers(chat_id)`                               | Список участников чата                     | `vector<ChatMember>`  |
-| `addChatMember(chat_id, user_id, role)`                 | Добавить участника                         | `bool`                |
-| `removeChatMember(chat_id, user_id)`                    | Удалить участника                          | `bool`                |
+| `getOrCreateDirect(user1_id, user2_id)`             | Получить или создать личку (идемпотентно!) | `Chat`                |
+| `getDirect(user1_id, user2_id)`             | Получить личку | `Chat?`                |
+| `createGroup(name, creator_id, member_ids(vector<id>))`         | Создать групповой чат                      | `Chat`                |
+| `getMembers(chat_id)`                               | Список участников чата                     | `vector<ChatMember>`  |
+| `addMember(chat_id, user_id, role)`                 | Добавить участника                         | `bool`                |
+| `removeMember(chat_id, user_id)`                    | Удалить участника                          | `bool`                |
 | `updateMemberRole(chat_id, user_id, new_role)`          | Изменить роль участника                    | `bool`                |
-| `updateChatInfo(chat_id, name?, avatar?, description?)` | Обновить инфо чата                         | `bool`                |
+| `updateInfo(chat_id, name?, avatar?, description?)` | Обновить инфо чата                         | `bool`                |
 
 ### ChatPreview(TODO)
 
@@ -83,6 +75,8 @@
 
 
 При загрузке чата возвращаем не просто Chat, а ChatPreview с последним сообщением(текст, автор), списком непрочитанных и тд.
+(подумать как реализовать: Самим? Или сделать фиктивную таблицу,
+чтобы drogon сгенерил?)
 
 ---
 
@@ -104,13 +98,12 @@
 
 | Метод                                                                | Описание                      | Возвращает        |
 | -------------------------------------------------------------------- | ----------------------------- | ----------------- |
-| `getMessageById(message_id)`                                         | Получить сообщение            | `Message?`        |
+| `getById(message_id)`                                         | Получить сообщение            | `Message?`        |
 | `getChatMessages(chat_id, before_id?, limit)`                        | Сообщения чата с пагинацией   | `vector<Message>` |
-| `sendMessage(chat_id, sender_id, text, reply_to_id?, forward_info?)` | Отправить сообщение           | `Message`         |
-| `editMessage(message_id, new_text)`                                  | Редактировать сообщение       | `bool`            |
-| `deleteMessage(message_id)`                                          | Удалить сообщение             | `bool`            |
+| `send(chat_id, sender_id, text, reply_to_id?, forward_info?)` | Отправить сообщение           | `Message`         |
+| `edit(message_id, new_text)`                                  | Редактировать сообщение       | `bool`            |
+| `delete(message_id)`                                          | Удалить сообщение             | `bool`            |
 | `markAsRead(chat_id, user_id, last_read_message_id)`                 | Обновить last_read_message_id | `void`            |
-| `pollMessages(user_id)`                 | Вернуть список новых сообщений | `vector<Message>`            |
 
 Пагинация через before_id` + `limit`
 
@@ -141,15 +134,15 @@
 
 | Метод                                                         | Описание                                 | Возвращает              |
 | ------------------------------------------------------------- | ---------------------------------------- | ----------------------- |
-| `getChannelById(channel_id)`                                  | Получить канал по ID                     | `Channel?`              |
-| `getChannelByHandle(handle)`                                  | Получить канал по @handle                | `Channel?`              |
+| `getById(channel_id)`                                  | Получить канал по ID                     | `Channel?`              |
+| `getByHandle(handle)`                                  | Получить канал по @handle                | `Channel?`              |
 | `getUserChannels(user_id)`                                    | Каналы, на которые подписан пользователь | `vector<Channel>`       |
-| `createChannel(handle, name, owner_id, is_private?)`          | Создать канал                            | `Channel`               |
-| `getChannelMembers(channel_id, offset?, limit?)`              | Подписчики канала                        | `vector<ChannelMember>` |
-| `getChannelMemberCount(channel_id)`                           | Количество подписчиков                   | `int64`                 |
-| `joinChannel(channel_id, user_id)`                            | Подписаться на канал                     | `bool`                  |
-| `leaveChannel(channel_id, user_id)`                           | Отписаться от канала                     | `bool`                  |
-| `updateChannelInfo(channel_id, name?, avatar?, description?)` | Обновить инфо канала                     | `bool`                  |
+| `create(handle, name, owner_id, is_private?)`          | Создать канал                            | `Channel`               |
+| `getMembers(channel_id, offset?, limit?)`              | Подписчики канала                        | `vector<ChannelMember>` |
+| `getMemberCount(channel_id)`                           | Количество подписчиков                   | `int64`                 |
+| `join(channel_id, user_id)`                            | Подписаться на канал                     | `bool`                  |
+| `leave(channel_id, user_id)`                           | Отписаться от канала                     | `bool`                  |
+| `updateInfo(channel_id, name?, avatar?, description?)` | Обновить инфо канала                     | `bool`                  |
 
 ---
 
@@ -168,12 +161,11 @@
 
 | Метод                                                   | Описание                    | Возвращает     |
 | ------------------------------------------------------- | --------------------------- | -------------- |
-| `getPostById(post_id)`                                  | Получить пост               | `Post?`        |
+| `getById(post_id)`                                  | Получить пост               | `Post?`        |
 | `getChannelPosts(channel_id, before_id?, limit)`        | Посты канала                | `vector<Post>` |
-| `createChannelPost(channel_id, text, enable_comments?)` | Создать пост в канале       | `Post`         |
-| `editPost(post_id, new_text)`                           | Редактировать пост          | `bool`         |
-| `deletePost(post_id)`                                   | Удалить пост                | `bool`         |
-| `pollPosts(user_id)`                 | Вернуть список новых постов | `vector<Post>`            |
+| `create(channel_id, text, enable_comments?)` | Создать пост в канале       | `Post`         |
+| `edit(post_id, new_text)`                           | Редактировать пост          | `bool`         |
+| `delete(post_id)`                                   | Удалить пост                | `bool`         |
 
 ### Комментарии
 
@@ -202,7 +194,7 @@
 | ------------------------------------------------ | ------------------------------ | ------------------ |
 | `addMessageReaction(message_id, user_id, emoji)` | Поставить реакцию на сообщение | `Reaction`         |
 | `addPostReaction(post_id, user_id, emoji)`       | Поставить реакцию на пост      | `Reaction`         |
-| `removeReaction(reaction_id)`                    | Убрать реакцию                 | `bool`             |
+| `remove(reaction_id)`                    | Убрать реакцию                 | `bool`             |
 | `getMessageReactions(message_id)`                | Реакции на сообщение           | `vector<Reaction>` |
 | `getPostReactions(post_id)`                      | Реакции на пост                | `vector<Reaction>` |
 
@@ -228,4 +220,4 @@
 | `addPostAttachment(post_id, file_type, file_size, file_path)`       | Добавить вложение к посту     | `Attachment`         |
 | `getMessageAttachments(message_id)`                                 | Вложения сообщения            | `vector<Attachment>` |
 | `getPostAttachments(post_id)`                                       | Вложения поста                | `vector<Attachment>` |
-| `deleteAttachment(attachment_id)`                                   | Удалить вложение              | `bool`               |
+| `delete(attachment_id)`                                   | Удалить вложение              | `bool`               |
