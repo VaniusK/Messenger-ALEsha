@@ -71,7 +71,17 @@ Task<HttpResponsePtr> auth::loginUser(HttpRequestPtr req) {
                 "Login error: Invalid handle or password";
             RETURN_RESPONSE_CODE_401(response_json)
         }
+        const std::string JWT_KEY = std::getenv("JWT_KEY");
+        std::string token = jwt::create()
+            .set_issuer("alesha_messenger")
+            .set_type("JWT")
+            .set_issued_at(std::chrono::system_clock::now())
+            //.set_expires_at(std::chrono::system_clock.now() + std::chrono::hours(24)) // uncomment when we have refresh tokens
+            .set_payload_claim("user_id", jwt::claim(std::to_string(user->getValueOfId())))
+            .set_payload_claim("handle", jwt::claim(user->getValueOfHandle()))
+            .sign(jwt::algorithm::hs256(JWT_KEY));
         response_json["message"] = "Login successful";
+        response_json["token"] = token;
         RETURN_RESPONSE_CODE_200(response_json)
     }
 }
