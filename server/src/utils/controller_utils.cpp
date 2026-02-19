@@ -29,4 +29,4 @@ bool find_missed_fields(
     }
     return false;
 }
-}
+}  // namespace api::v1::utils
