@@ -36,6 +36,7 @@ endif ()
 
 aux_source_directory(src SRC_SRC)
 aux_source_directory(src/repositories REPO_SRC)
+aux_source_directory(src/utils UTILS_SRC)
 
 aux_source_directory(controllers CTL_SRC)
 aux_source_directory(filters FILTER_SRC)
@@ -59,6 +60,7 @@ target_sources(${PROJECT_NAME}
                 PRIVATE
                ${SRC_SRC}
                ${REPO_SRC}
+               ${UTILS_SRC}
                ${CTL_SRC}
                ${FILTER_SRC}
                ${PLUGIN_SRC}
