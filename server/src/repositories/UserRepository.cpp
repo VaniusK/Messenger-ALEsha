@@ -8,9 +8,7 @@ using UserRepository = messenger::repositories::UserRepository;
 using namespace drogon;
 using namespace drogon::orm;
 
-Task<std::optional<User>> UserRepository::getById(int id) {
-    CoroMapper<User> mapper = getMapper();
-
+Task<std::optional<User>> UserRepository::getById(int64_t id) {
     try {
         User user = co_await mapper.findByPrimaryKey(id);
 
@@ -23,8 +21,6 @@ Task<std::optional<User>> UserRepository::getById(int id) {
 }
 
 Task<std::optional<User>> UserRepository::getByHandle(std::string handle) {
-    CoroMapper<User> mapper = getMapper();
-
     try {
         User user = co_await mapper.findOne(
             Criteria(User::Cols::_handle, CompareOperator::EQ, handle)
@@ -39,8 +35,6 @@ Task<std::optional<User>> UserRepository::getByHandle(std::string handle) {
 }
 
 Task<std::vector<User>> UserRepository::getAll() {
-    CoroMapper<User> mapper = getMapper();
-
     try {
         std::vector<User> users = co_await mapper.findAll();
 
@@ -55,8 +49,6 @@ Task<bool> UserRepository::create(
     std::string display_name,
     std::string password_hash
 ) {
-    CoroMapper<User> mapper = getMapper();
-
     try {
         User user;
         user.setHandle(handle);
@@ -68,5 +60,14 @@ Task<bool> UserRepository::create(
         // assuming it means UNIQUE constraint violation
         // idk how to distinguish it from generic db exeption
         co_return false;
+    }
+}
+
+Task<std::vector<User>> UserRepository::getByIds(std::vector<int64_t> ids) {
+    try {
+        std::vector<User> users = co_await mapper.findBy(Criteria(User::Cols::_id, CompareOperator::In, ids));
+        co_return users;
+    } catch (const DrogonDbException &e) {
+        throw std::runtime_error("Database error");
     }
 }
