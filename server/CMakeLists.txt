@@ -122,7 +122,7 @@ if(BUILD_TESTS)
     add_executable(server_tests 
         tests/test_user_repository.cpp
     )
-    target_sources(server_tests PRIVATE src/repositories/UserRepository.cpp)
+    target_sources(server_tests PRIVATE ${REPO_SRC})
     target_include_directories(${PROJECT_NAME} PRIVATE ${bcrypt_SOURCE_DIR}/include) # include bcrypt headers
     target_include_directories(server_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include) # include project headers
     target_link_libraries(server_tests GTest::gtest_main)
