@@ -1,5 +1,6 @@
 #include <drogon/orm/Result.h>
 #include <algorithm>
+#include <latch>
 #include "fixtures/UserTestFixture.hpp"
 
 using UserRepository = messenger::repositories::UserRepository;
@@ -95,32 +96,37 @@ TEST_F(UserTestFixture, TestGetAll) {
     EXPECT_EQ(users.size(), 3);
 }
 
-TEST_F(UserTestFixture, TestConcurrentCreateSameHandle) {
+TEST_F(UserTestFixture, TestConcurrentCreateDifferentHandles) {
     /* When multiple threads attemp to create users
-    with the same handle concurrently,
-    exactly one should succeed
-    and the rest should fail*/
+    with the different handle concurrently,
+    they all should succeed
+    and all users should be created*/
 
     // otherwise the test does nothing
     EXPECT_TRUE(std::thread::hardware_concurrency() > 1);
+
+    std::latch start_gate(1);
     std::vector<std::thread> threads;
     std::atomic<int> success_count{0};
-    for (int i = 0; i < 10; i++) {
-        threads.push_back(std::thread([&]() {
-            bool res = sync_wait(
-                repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk")
-            );
+    for (int i = 0; i < 100; i++) {
+        threads.push_back(std::thread([&, i]() {
+            start_gate.wait();
+            bool res = sync_wait(repo_.create(
+                "konobeitsev" + std::to_string(i), "Ivan konobeitsev",
+                "hash_idk"
+            ));
             if (res) {
                 success_count++;
             }
         }));
     }
+    start_gate.count_down();
     for (auto &t : threads) {
         t.join();
     }
-    EXPECT_EQ(success_count, 1);
+    EXPECT_EQ(success_count, 100);
     auto users = sync_wait(repo_.getAll());
-    EXPECT_EQ(users.size(), 1);
+    EXPECT_EQ(users.size(), 100);
 }
 
 TEST_F(UserTestFixture, TestByIds) {
