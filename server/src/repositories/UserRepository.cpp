@@ -99,3 +99,30 @@ UserRepository::search(std::string query, int64_t limit) {
         throw std::runtime_error("Database error");
     }
 }
+
+Task<bool> UserRepository::updateProfile(
+    int64_t user_id,
+    std::optional<std::string> display_name,
+    std::optional<std::string> avatar,
+    std::optional<std::string> description
+) {
+    auto mapper = getMapper();
+    try {
+        auto user = co_await mapper.findByPrimaryKey(user_id);
+        if (display_name.has_value()) {
+            user.setDisplayName(display_name.value());
+        }
+        if (avatar.has_value()) {
+            user.setAvatarPath(avatar.value());
+        }
+        if (description.has_value()) {
+            user.setDescription(description.value());
+        }
+        co_await mapper.update(user);
+        co_return true;
+    } catch (const UnexpectedRows &e) {
+        co_return false;
+    } catch (const DrogonDbException &e) {
+        throw std::runtime_error("Database error");
+    }
+}

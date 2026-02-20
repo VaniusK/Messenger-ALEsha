@@ -12,8 +12,7 @@ class UserRepositoryInterface {
 public:
     virtual ~UserRepositoryInterface() = default;
     virtual drogon::Task<std::optional<User>> getById(int64_t id) = 0;
-    virtual drogon::Task<std::optional<User>> getByHandle(
-        std::string handle
+    virtual drogon::Task<std::optional<User>> getByHandle(std::string handle
     ) = 0;
     virtual drogon::Task<std::vector<User>> getAll() = 0;
     virtual drogon::Task<bool> create(
@@ -21,11 +20,16 @@ public:
         std::string display_name,
         std::string password_hash
     ) = 0;
-    virtual drogon::Task<std::vector<User>> getByIds(
-        std::vector<int64_t> ids
+    virtual drogon::Task<std::vector<User>> getByIds(std::vector<int64_t> ids
     ) = 0;
     virtual drogon::Task<std::vector<User>>
     search(std::string query, int64_t limit) = 0;
+    virtual drogon::Task<bool> updateProfile(
+        int64_t user_id,
+        std::optional<std::string> display_name,
+        std::optional<std::string> avatar,
+        std::optional<std::string> description
+    ) = 0;
 };
 
 class UserRepository : public UserRepositoryInterface {
@@ -39,8 +43,14 @@ public:
         std::string password_hash
     ) override;
     drogon::Task<std::vector<User>> getByIds(std::vector<int64_t> ids) override;
-    drogon::Task<std::vector<User>>
-    search(std::string query, int64_t limit) override;
+    drogon::Task<std::vector<User>> search(std::string query, int64_t limit)
+        override;
+    drogon::Task<bool> updateProfile(
+        int64_t user_id,
+        std::optional<std::string> display_name,
+        std::optional<std::string> avatar,
+        std::optional<std::string> description
+    ) override;
 
 private:
     drogon::orm::CoroMapper<User> getMapper() {
