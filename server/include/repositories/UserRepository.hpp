@@ -21,7 +21,11 @@ public:
         std::string display_name,
         std::string password_hash
     ) = 0;
-    virtual drogon::Task<std::vector<User>> getByIds(std::vector<int64_t> ids) = 0;
+    virtual drogon::Task<std::vector<User>> getByIds(
+        std::vector<int64_t> ids
+    ) = 0;
+    virtual drogon::Task<std::vector<User>>
+    search(std::string query, int64_t limit) = 0;
 };
 
 class UserRepository : public UserRepositoryInterface {
@@ -35,13 +39,13 @@ public:
         std::string password_hash
     ) override;
     drogon::Task<std::vector<User>> getByIds(std::vector<int64_t> ids) override;
+    drogon::Task<std::vector<User>>
+    search(std::string query, int64_t limit) override;
 
 private:
     drogon::orm::CoroMapper<User> getMapper() {
         return drogon::orm::CoroMapper<User>(drogon::app().getDbClient());
     }
-
-    drogon::orm::CoroMapper<User> mapper = getMapper();
 };
 
 }  // namespace messenger::repositories

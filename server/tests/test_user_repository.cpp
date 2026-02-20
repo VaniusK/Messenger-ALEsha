@@ -1,6 +1,6 @@
 #include <drogon/orm/Result.h>
-#include "fixtures/UserTestFixture.hpp"
 #include <algorithm>
+#include "fixtures/UserTestFixture.hpp"
 
 using UserRepository = messenger::repositories::UserRepository;
 using User = drogon_model::messenger_db::Users;
@@ -136,15 +136,132 @@ TEST_F(UserTestFixture, TestByIds) {
     auto user1 = sync_wait(repo_.getByHandle("user1")).value();
     auto user2 = sync_wait(repo_.getByHandle("user2")).value();
     auto user3 = sync_wait(repo_.getByHandle("user3")).value();
-    auto users = sync_wait(repo_.getByIds(std::vector<int64_t>{user1.getValueOfId(), user2.getValueOfId(), user3.getValueOfId(), 9999}));
+    auto users = sync_wait(repo_.getByIds(
+        std::vector<int64_t>{
+            user1.getValueOfId(), user2.getValueOfId(), user3.getValueOfId(),
+            9999
+        }
+    ));
     EXPECT_EQ(users.size(), 3);
-    EXPECT_EQ(std::count_if(users.begin(), users.end(), [user1](const User& u) {
-        return user1.getValueOfId() == u.getValueOfId();
-    }), 1);
-    EXPECT_EQ(std::count_if(users.begin(), users.end(), [user2](const User& u) {
-        return user2.getValueOfId() == u.getValueOfId();
-    }), 1);
-    EXPECT_EQ(std::count_if(users.begin(), users.end(), [user3](const User& u) {
-        return user3.getValueOfId() == u.getValueOfId();
-    }), 1);
+    EXPECT_EQ(
+        std::count_if(
+            users.begin(), users.end(),
+            [&user1](const User &u) {
+                return user1.getValueOfId() == u.getValueOfId();
+            }
+        ),
+        1
+    );
+    EXPECT_EQ(
+        std::count_if(
+            users.begin(), users.end(),
+            [&user2](const User &u) {
+                return user2.getValueOfId() == u.getValueOfId();
+            }
+        ),
+        1
+    );
+    EXPECT_EQ(
+        std::count_if(
+            users.begin(), users.end(),
+            [&user3](const User &u) {
+                return user3.getValueOfId() == u.getValueOfId();
+            }
+        ),
+        1
+    );
+}
+
+TEST_F(UserTestFixture, TestSearchByHandle) {
+    /* When search called,
+    it should return all users with matching handle*/
+    bool res1 = sync_wait(repo_.create("user1", "name", "hash_idk"));
+    bool res2 = sync_wait(repo_.create("user2", "name", "hash_idk"));
+    bool res3 = sync_wait(repo_.create("ohoho", "name", "hash_idk"));
+    EXPECT_TRUE(res1);
+    EXPECT_TRUE(res2);
+    EXPECT_TRUE(res3);
+    auto user1 = sync_wait(repo_.getByHandle("user1")).value();
+    auto user2 = sync_wait(repo_.getByHandle("user2")).value();
+    auto user3 = sync_wait(repo_.getByHandle("ohoho")).value();
+    auto users = sync_wait(repo_.search("user", 100));
+    EXPECT_EQ(users.size(), 2);
+    EXPECT_EQ(
+        std::count_if(
+            users.begin(), users.end(),
+            [&user1](const User &u) {
+                return user1.getValueOfId() == u.getValueOfId();
+            }
+        ),
+        1
+    );
+    EXPECT_EQ(
+        std::count_if(
+            users.begin(), users.end(),
+            [&user2](const User &u) {
+                return user2.getValueOfId() == u.getValueOfId();
+            }
+        ),
+        1
+    );
+}
+
+TEST_F(UserTestFixture, TestSearchByMixed) {
+    /* When search called,
+    it should return all users with matching handle or name*/
+    bool res1 = sync_wait(repo_.create("user1", "name", "hash_idk"));
+    bool res2 = sync_wait(repo_.create("user2", "name", "hash_idk"));
+    bool res3 = sync_wait(repo_.create("ohoho", "user3", "hash_idk"));
+    EXPECT_TRUE(res1);
+    EXPECT_TRUE(res2);
+    EXPECT_TRUE(res3);
+    auto user1 = sync_wait(repo_.getByHandle("user1")).value();
+    auto user2 = sync_wait(repo_.getByHandle("user2")).value();
+    auto user3 = sync_wait(repo_.getByHandle("ohoho")).value();
+    auto users = sync_wait(repo_.search("user", 100));
+    EXPECT_EQ(users.size(), 3);
+    EXPECT_EQ(
+        std::count_if(
+            users.begin(), users.end(),
+            [&user1](const User &u) {
+                return user1.getValueOfId() == u.getValueOfId();
+            }
+        ),
+        1
+    );
+    EXPECT_EQ(
+        std::count_if(
+            users.begin(), users.end(),
+            [&user2](const User &u) {
+                return user2.getValueOfId() == u.getValueOfId();
+            }
+        ),
+        1
+    );
+    EXPECT_EQ(
+        std::count_if(
+            users.begin(), users.end(),
+            [&user3](const User &u) {
+                return user3.getValueOfId() == u.getValueOfId();
+            }
+        ),
+        1
+    );
+}
+
+TEST_F(UserTestFixture, TestSearchLimit) {
+    /* When search called,
+    it should return all users with matching handle or name
+    and result size should not exceed the limit*/
+    bool res1 = sync_wait(repo_.create("user1", "name", "hash_idk"));
+    bool res2 = sync_wait(repo_.create("user2", "name", "hash_idk"));
+    bool res3 = sync_wait(repo_.create("user3", "name", "hash_idk"));
+    EXPECT_TRUE(res1);
+    EXPECT_TRUE(res2);
+    EXPECT_TRUE(res3);
+    auto user1 = sync_wait(repo_.getByHandle("user1")).value();
+    auto user2 = sync_wait(repo_.getByHandle("user2")).value();
+    auto user3 = sync_wait(repo_.getByHandle("user3")).value();
+    auto users = sync_wait(repo_.search("user", 2));
+    EXPECT_EQ(users.size(), 2);
 }

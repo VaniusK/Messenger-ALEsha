@@ -9,6 +9,8 @@ using namespace drogon;
 using namespace drogon::orm;
 
 Task<std::optional<User>> UserRepository::getById(int64_t id) {
+    auto mapper = getMapper();
+
     try {
         User user = co_await mapper.findByPrimaryKey(id);
 
@@ -21,6 +23,8 @@ Task<std::optional<User>> UserRepository::getById(int64_t id) {
 }
 
 Task<std::optional<User>> UserRepository::getByHandle(std::string handle) {
+    auto mapper = getMapper();
+
     try {
         User user = co_await mapper.findOne(
             Criteria(User::Cols::_handle, CompareOperator::EQ, handle)
@@ -35,6 +39,8 @@ Task<std::optional<User>> UserRepository::getByHandle(std::string handle) {
 }
 
 Task<std::vector<User>> UserRepository::getAll() {
+    auto mapper = getMapper();
+
     try {
         std::vector<User> users = co_await mapper.findAll();
 
@@ -49,6 +55,8 @@ Task<bool> UserRepository::create(
     std::string display_name,
     std::string password_hash
 ) {
+    auto mapper = getMapper();
+
     try {
         User user;
         user.setHandle(handle);
@@ -64,8 +72,28 @@ Task<bool> UserRepository::create(
 }
 
 Task<std::vector<User>> UserRepository::getByIds(std::vector<int64_t> ids) {
+    auto mapper = getMapper();
+
     try {
-        std::vector<User> users = co_await mapper.findBy(Criteria(User::Cols::_id, CompareOperator::In, ids));
+        std::vector<User> users = co_await mapper.findBy(
+            Criteria(User::Cols::_id, CompareOperator::In, ids)
+        );
+        co_return users;
+    } catch (const DrogonDbException &e) {
+        throw std::runtime_error("Database error");
+    }
+}
+
+Task<std::vector<User>>
+UserRepository::search(std::string query, int64_t limit) {
+    auto mapper = getMapper();
+
+    query = "%" + query + "%";
+    try {
+        std::vector<User> users = co_await mapper.limit(limit).findBy(
+            Criteria(User::Cols::_handle, CompareOperator::Like, query) ||
+            Criteria(User::Cols::_display_name, CompareOperator::Like, query)
+        );
         co_return users;
     } catch (const DrogonDbException &e) {
         throw std::runtime_error("Database error");
