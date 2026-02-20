@@ -11,9 +11,8 @@ TEST_F(UserTestFixture, TestCreate) {
     /* When valid data is provided,
     create() should return true
     and the user should be retrievable via getAll() */
-    bool res = sync_wait(
-        repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk")
-    );
+    bool res =
+        sync_wait(repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk"));
     EXPECT_TRUE(res);
     auto users = sync_wait(repo_.getAll());
     EXPECT_EQ(users.size(), 1);
@@ -25,13 +24,11 @@ TEST_F(UserTestFixture, TestCreateSameHandle) {
     /* When user with given handle already exists,
     create() with the same handle should return false
     and no new user should be created */
-    bool res = sync_wait(
-        repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk")
-    );
+    bool res =
+        sync_wait(repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk"));
     EXPECT_TRUE(res);
-    bool res2 = sync_wait(
-        repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk")
-    );
+    bool res2 =
+        sync_wait(repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk"));
     EXPECT_FALSE(res2);
     auto users = sync_wait(repo_.getAll());
     EXPECT_EQ(users.size(), 1);
@@ -40,9 +37,8 @@ TEST_F(UserTestFixture, TestCreateSameHandle) {
 TEST_F(UserTestFixture, TestGetByHandle) {
     /* When user with given handle exists,
     getByHandle() should return it */
-    bool res = sync_wait(
-        repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk")
-    );
+    bool res =
+        sync_wait(repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk"));
     EXPECT_TRUE(res);
     auto result = sync_wait(repo_.getByHandle("konobeitsev3"));
     EXPECT_TRUE(result.has_value());
@@ -53,9 +49,8 @@ TEST_F(UserTestFixture, TestGetByHandle) {
 TEST_F(UserTestFixture, TestGetByHandleFail) {
     /* When user with given handle doesn't exist,
     getByHandle() should return nullopt */
-    bool res = sync_wait(
-        repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk")
-    );
+    bool res =
+        sync_wait(repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk"));
     EXPECT_TRUE(res);
     auto result = sync_wait(repo_.getByHandle("some_user"));
     EXPECT_FALSE(result.has_value());
@@ -64,9 +59,8 @@ TEST_F(UserTestFixture, TestGetByHandleFail) {
 TEST_F(UserTestFixture, TestGetById) {
     /* When user with given id exists,
     getById() should return it */
-    bool res = sync_wait(
-        repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk")
-    );
+    bool res =
+        sync_wait(repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk"));
     EXPECT_TRUE(res);
     auto result = sync_wait(repo_.getByHandle("konobeitsev3"));
     EXPECT_TRUE(result.has_value());
@@ -80,9 +74,8 @@ TEST_F(UserTestFixture, TestGetById) {
 TEST_F(UserTestFixture, TestGetByIdFail) {
     /* When user with given id doesn't exist,
     getById() should return nullopt */
-    bool res = sync_wait(
-        repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk")
-    );
+    bool res =
+        sync_wait(repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk"));
     EXPECT_TRUE(res);
     auto result = sync_wait(repo_.getById(100));
     EXPECT_FALSE(result.has_value());
@@ -113,9 +106,9 @@ TEST_F(UserTestFixture, TestConcurrentCreateSameHandle) {
     std::atomic<int> success_count{0};
     for (int i = 0; i < 10; i++) {
         threads.push_back(std::thread([&]() {
-            bool res = sync_wait(repo_.create(
-                "konobeitsev3", "Ivan konobeitsev", "hash_idk"
-            ));
+            bool res = sync_wait(
+                repo_.create("konobeitsev3", "Ivan konobeitsev", "hash_idk")
+            );
             if (res) {
                 success_count++;
             }
