@@ -1,3 +1,4 @@
+#pragma once
 #include "DbTestFixture.hpp"
 
 using UserRepository = messenger::repositories::UserRepository;

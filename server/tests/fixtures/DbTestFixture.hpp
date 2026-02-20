@@ -1,3 +1,4 @@
+#pragma once
 #include <drogon/drogon.h>
 #include <drogon/utils/coroutine.h>
 #include <gtest/gtest.h>
