@@ -5,9 +5,6 @@
 #include <vector>
 #include "repositories/UserRepository.hpp"
 
-using UserRepository = messenger::repositories::UserRepository;
-using User = drogon_model::messenger_db::Users;
-
 using namespace drogon;
 using namespace drogon::orm;
 
@@ -16,7 +13,7 @@ void runDrogon() {
     app().run();
 }
 
-class DbTestSuit : public ::testing::Test {
+class DbTestFixture : public ::testing::Test {
 public:
     static inline std::thread serverThread_;
 
@@ -56,7 +53,4 @@ public:
 
     void TearDown() override {
     }
-
-protected:
-    UserRepository user_repo_;
 };
