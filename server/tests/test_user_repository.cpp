@@ -142,12 +142,9 @@ TEST_F(UserTestFixture, TestByIds) {
     auto user1 = sync_wait(repo_.getByHandle("user1")).value();
     auto user2 = sync_wait(repo_.getByHandle("user2")).value();
     auto user3 = sync_wait(repo_.getByHandle("user3")).value();
-    auto users = sync_wait(repo_.getByIds(
-        std::vector<int64_t>{
-            user1.getValueOfId(), user2.getValueOfId(), user3.getValueOfId(),
-            9999
-        }
-    ));
+    auto users = sync_wait(repo_.getByIds(std::vector<int64_t>{
+        user1.getValueOfId(), user2.getValueOfId(), user3.getValueOfId(), 9999
+    }));
     EXPECT_EQ(users.size(), 3);
     EXPECT_EQ(
         std::count_if(
