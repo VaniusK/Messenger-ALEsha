@@ -26,6 +26,12 @@ FetchContent_Declare( # download bcrypt from github
 )
 fetchcontent_makeavailable(jwt-cpp bcrypt) # make available for the project
 
+configure_file(
+    "config.json"
+    "${CMAKE_CURRENT_BINARY_DIR}/config.json"
+    COPYONLY
+)
+
 add_executable(${PROJECT_NAME} src/main.cc) # create executable
 
 # ##############################################################################

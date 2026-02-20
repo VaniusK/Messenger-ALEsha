@@ -1,26 +1,24 @@
 #include <drogon/drogon.h>
 #include <iostream>
+
 int main() {
     setbuf(stdout, nullptr); // disabling stdout buffer for real-time logs in console(comment on realease and turn on file logs)
-    //Set HTTP listener address and port
-    std::cout << "Starting server on port 5555" << std::endl;
-    // drogon::app().addListener("0.0.0.0", 5555);
-    //Load config file, try to find config.json in the current directory, if not found, try to find it in the parent directory(change on release)
-    try{
-        drogon::app().loadConfigFile("./config.json");
-    }
-    catch(const std::exception& e){
-        drogon::app().loadConfigFile("../config.json");
-    }
-    drogon::app().createDbClient(
-        "postgresql",             // rdbms
-        std::getenv("POSTGRES_HOST") ?: "localhost",
-        5432,                     // port
-        std::getenv("POSTGRES_DB") ?: "messenger_db",
-        std::getenv("POSTGRES_USER") ?: "messenger",
-        std::getenv("POSTGRES_PASSWORD") ?: "",
-        1                         // connections
-    );
+    
+    LOG_INFO << "Starting server on port 5555";
+
+    drogon::app().loadConfigFile("config.json");
+
+    drogon::orm::PostgresConfig dbConfig;
+    dbConfig.host = std::getenv("POSTGRES_HOST") ?: "localhost";
+    dbConfig.port = 5432;
+    dbConfig.databaseName = std::getenv("POSTGRES_DB") ?: "messenger_db";
+    dbConfig.username = std::getenv("POSTGRES_USER") ?: "messenger";
+    dbConfig.password = std::getenv("POSTGRES_PASSWORD") ?: "";
+    dbConfig.connectionNumber = 1;
+    dbConfig.name = "default";
+    dbConfig.timeout = -1.0;
+    dbConfig.isFast = false;
+    drogon::app().addDbClient(dbConfig);
     drogon::app().run();
     return 0;
 }
