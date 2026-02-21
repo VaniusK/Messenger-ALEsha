@@ -15,6 +15,8 @@ qt_add_executable(client
     src/main.cpp
     src/AuthManager.cpp
     include/AuthManager.hpp
+    src/StateManager.cpp
+    include/StateManager.hpp
 )
 
 qt_add_qml_module(client

@@ -15,6 +15,10 @@ Rectangle {
 
             function onLoginSuccess(token) {
                 console.log("[Login] Authentication successful! Token:", token)
+                AppState.token = token
+                AppState.currentUserHandle = handleField.text
+                console.log("State token is now:", AppState.token)
+                
                 var loader = root.parent
                 if (loader) {
                     loader.source = "chat.qml"
