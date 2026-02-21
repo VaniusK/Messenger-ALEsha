@@ -87,8 +87,7 @@ void AuthManager::loginUser(const QString &handle, const QString &password) {
             }
 
             if (token.isEmpty()) {
-                emit loginFailed(
-                    "Error: Server didn't return an access token."
+                emit loginFailed("Error: Server didn't return an access token."
                 );
             } else {
                 emit loginSuccess(token);

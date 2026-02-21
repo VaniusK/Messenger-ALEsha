@@ -2,9 +2,9 @@
 
 #include <qnetworkaccessmanager.h>
 #include <qtmetamacros.h>
-#include <QObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QObject>
 #include <QString>
 
 class AuthManager : public QObject {
@@ -12,7 +12,11 @@ class AuthManager : public QObject {
 
 public:
     explicit AuthManager(QObject *parent = nullptr);
-    Q_INVOKABLE void registerUser(const QString &handle, const QString &displayName, const QString &password);
+    Q_INVOKABLE void registerUser(
+        const QString &handle,
+        const QString &displayName,
+        const QString &password
+    );
     Q_INVOKABLE void loginUser(const QString &handle, const QString &password);
 
 signals:
