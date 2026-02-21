@@ -1,14 +1,17 @@
-// Messenger Client Entry Point
-
+#include <qqml.h>
 #include <QDebug>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QUrl>
+#include "AuthManager.hpp"
 
 int main(int argc, char *argv[]) {
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
+    qmlRegisterSingletonInstance(
+        "Messenger", 1, 0, "Auth", new AuthManager(&app)
+    );
     const QUrl url(u"qrc:/messenger_client_uri/src/main.qml"_qs);
     engine.load(url);
     return app.exec();
