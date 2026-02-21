@@ -1,4 +1,5 @@
 import QtQuick
+import Messenger 1.0
 
 Rectangle {
     id: root
@@ -8,6 +9,25 @@ Rectangle {
         anchors.centerIn: parent
         width: Math.min(parent.width * 0.8, 300)
         spacing: 15
+
+        Connections {
+            target: Auth
+
+            function onRegisterSuccess() {
+                console.log("[Sign Up] Registration successful!")
+                var loader = root.parent
+                if (loader) {
+                    loader.source = "sign_in.qml"
+                }
+            }
+
+            function onRegisterFailed(errorMsg) {
+                console.log("[Sign Up] Registration failed: ", errorMsg)
+                errorText.text = errorMsg
+                errorBox.visible = true
+                errorTimer.restart()
+            }
+        }
 
         Text {
             text: "Регистрация"
@@ -194,13 +214,8 @@ Rectangle {
                         return
                     }
 
-                    console.log("[Sign Up] Validation Successful. Handle:", handleField.text, "Display Name:", displayNameField.text)
-                    console.log("[Sign Up] Redirecting to Login screen.")
-
-                    var loader = root.parent
-                    if (loader) {
-                        loader.source = "sign_in.qml"
-                    }
+                    console.log("[Sign Up] Validation successful. Sending request to server...")
+                    Auth.registerUser(handleField.text, displayNameField.text, passwordField.text)
                 }   
             }
         }

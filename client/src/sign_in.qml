@@ -1,4 +1,5 @@
 import QtQuick
+import Messenger 1.0
 
 Rectangle {
     id: root
@@ -8,6 +9,25 @@ Rectangle {
         anchors.centerIn: parent
         width: Math.min(parent.width * 0.8, 300)
         spacing: 20
+
+        Connections {
+            target: Auth
+
+            function onLoginSuccess(token) {
+                console.log("[Login] Authentication successful! Token:", token)
+                var loader = root.parent
+                if (loader) {
+                    loader.source = "chat.qml"
+                }
+            }
+
+            function onLoginFailed(errorMsg) {
+                console.log("[Login] Login failed:", errorMsg)
+                errorText.text = errorMsg
+                errorBox.visible = true
+                errorTimer.restart()
+            }
+        }
 
         Text {
             text: "Alyosha messenger"
@@ -124,15 +144,8 @@ Rectangle {
                         errorBox.visible = true
                         errorTimer.restart()
                     } else {
-                        console.log("[Login] Validation Successful. Attempting login for:", handleField.text)
-                        
-                        // Note: In real app, we would wait for server response here
-                        console.log("[Login] Login successful (mock). Navigating to Chat.")
-                        
-                        var loader = root.parent
-                        if (loader) {
-                            loader.source = "chat.qml"
-                        }
+                        console.log("[Login] Validation Successful. Sending data...", handleField.text)
+                        Auth.loginUser(handleField.text, passwordField.text)
                     }
                 }
                 
