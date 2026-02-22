@@ -7,8 +7,8 @@ Rectangle {
 
     Column {
         anchors.centerIn: parent
-        width: Math.min(parent.width * 0.8, 300)
-        spacing: 20
+        width: Math.min(400, parent.width * 0.8)
+        spacing: 15
 
         Connections {
             target: Auth
@@ -35,30 +35,32 @@ Rectangle {
 
         Text {
             text: "Alyosha messenger"
-            font.pixelSize: 24
+            font.pixelSize: 28
             font.bold: true
             anchors.horizontalCenter: parent.horizontalCenter
+            bottomPadding: 20
         }
 
         // Handle Input
         Rectangle {
             width: parent.width
-            height: 40
+            height: Math.max(45, Math.min(55, root.height * 0.07))
             color: "white"
             border.color: "#ccc"
-            radius: 4
+            radius: height / 2
 
             TextInput {
                 id: handleField
                 anchors.fill: parent
-                anchors.margins: 10
-                text: ""
-                font.pixelSize: 16
+                anchors.leftMargin: parent.radius
+                anchors.rightMargin: parent.radius
                 verticalAlignment: Text.AlignVCenter
+                font.pixelSize: 16
                 
                 Text {
                     text: "Введите логин"
                     color: "#aaa"
+                    font.pixelSize: parent.font.pixelSize
                     visible: !parent.text && !parent.activeFocus
                     anchors.centerIn: parent
                 }
@@ -68,23 +70,24 @@ Rectangle {
         // Password Input
         Rectangle {
             width: parent.width
-            height: 40
+            height: Math.max(45, Math.min(55, root.height * 0.07))
             color: "white"
             border.color: "#ccc"
-            radius: 4
+            radius: height / 2
 
             TextInput {
                 id: passwordField
                 anchors.fill: parent
-                anchors.margins: 10
-                text: ""
+                anchors.leftMargin: parent.radius
+                anchors.rightMargin: parent.radius
                 echoMode: TextInput.Password
-                font.pixelSize: 16
                 verticalAlignment: Text.AlignVCenter
+                font.pixelSize: 16
 
                 Text {
                     text: "Введите пароль"
                     color: "#aaa"
+                    font.pixelSize: parent.font.pixelSize
                     visible: !parent.text && !parent.activeFocus
                     anchors.centerIn: parent
                 }
@@ -95,10 +98,10 @@ Rectangle {
         Rectangle {
             id: errorBox
             width: parent.width
-            height: 30
+            height: Math.max(45, Math.min(55, root.height * 0.07))
             color: "white"
             border.color: "#F05C5C"
-            radius: 4
+            radius: 8
             visible: false
 
             Text {
@@ -106,7 +109,7 @@ Rectangle {
                 text: ""
                 color: "red"
                 anchors.centerIn: parent
-                font.pixelSize: 14
+                font.pixelSize: 12
             }
 
             Timer {
@@ -121,19 +124,23 @@ Rectangle {
         // Login Button
         Rectangle {
             width: parent.width
-            height: 40
+            height: Math.max(50, Math.min(60, root.height * 0.1))
             color: "#007bff"
-            radius: 4
+            radius: height / 2
 
             Text {
                 text: "Sign In"
                 color: "white"
+                font.pixelSize: 16
                 font.bold: true
                 anchors.centerIn: parent
             }
 
             MouseArea {
                 anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onPressed: parent.opacity = 0.75
+                onReleased: parent.opacity = 1.0
                 onClicked: {
                     console.log("[Login] Sign In button clicked")
                     errorBox.visible = false
@@ -142,7 +149,7 @@ Rectangle {
                         errorText.text = "Ошибка! Введите логин"
                         errorBox.visible = true
                         errorTimer.restart()
-                    } else if (passwordField.text.length == 0) { // Fixed .length access for TextInput
+                    } else if (passwordField.text.length == 0) {
                         console.log("[Login] Validation Error: Password is empty")
                         errorText.text = "Ошибка! Введите пароль"
                         errorBox.visible = true
@@ -152,22 +159,20 @@ Rectangle {
                         Auth.loginUser(handleField.text, passwordField.text)
                     }
                 }
-                
-                onPressed: parent.opacity = 0.75
-                onReleased: parent.opacity = 1.0
             }
         }
 
         // Register Button
         Rectangle {
             width: parent.width
-            height: 40
+            height: Math.max(50, Math.min(60, root.height * 0.1))
             color: "#007bff"
-            radius: 4
+            radius: height / 2
 
             Text {
                 text: "Register"
                 color: "white"
+                font.pixelSize: 16
                 font.bold: true
                 anchors.centerIn: parent
             }
