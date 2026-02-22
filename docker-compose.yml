@@ -33,6 +33,8 @@ services:
       - db
     profiles:
       - test
+    environment:
+      POSTGRES_DB: messenger_db_test
 
 volumes:
   postgres_data:
