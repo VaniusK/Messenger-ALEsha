@@ -4,6 +4,8 @@ Window {
     id: window
     width: 1280
     height: 720
+    minimumWidth: 600
+    minimumHeight: 600
     visible: true
     title: "Messenger Alyosha"
 

@@ -7,7 +7,7 @@ Rectangle {
 
     Column {
         anchors.centerIn: parent
-        width: Math.min(parent.width * 0.8, 300)
+        width: Math.min(400, parent.width * 0.8)
         spacing: 15
 
         Connections {
@@ -31,30 +31,32 @@ Rectangle {
 
         Text {
             text: "Регистрация"
-            font.pixelSize: 24
+            font.pixelSize: 28
             font.bold: true
             anchors.horizontalCenter: parent.horizontalCenter
+            bottomPadding: 20
         }
 
         // Handle Input
         Rectangle {
             width: parent.width
-            height: 40
+            height: Math.max(45, Math.min(55, root.height * 0.07))
             color: "white"
             border.color: "#ccc"
-            radius: 4
+            radius: height / 2
 
             TextInput {
                 id: handleField
                 anchors.fill: parent
-                anchors.margins: 10
-                text: ""
-                font.pixelSize: 16
+                anchors.leftMargin: parent.radius
+                anchors.rightMargin: parent.radius
                 verticalAlignment: Text.AlignVCenter
+                font.pixelSize: 16
                 
                 Text {
                     text: "Введите логин"
                     color: "#aaa"
+                    font.pixelSize: parent.font.pixelSize
                     visible: !parent.text && !parent.activeFocus
                     anchors.centerIn: parent
                 }
@@ -64,22 +66,23 @@ Rectangle {
         // Display Name Input
         Rectangle {
             width: parent.width
-            height: 40
+            height: Math.max(45, Math.min(55, root.height * 0.07))
             color: "white"
             border.color: "#ccc"
-            radius: 4
+            radius: height / 2
 
             TextInput {
                 id: displayNameField
                 anchors.fill: parent
-                anchors.margins: 10
-                text: ""
-                font.pixelSize: 16
+                anchors.leftMargin: parent.radius
+                anchors.rightMargin: parent.radius
                 verticalAlignment: Text.AlignVCenter
+                font.pixelSize: 16
                 
                 Text {
                     text: "Введите имя"
                     color: "#aaa"
+                    font.pixelSize: parent.font.pixelSize
                     visible: !parent.text && !parent.activeFocus
                     anchors.centerIn: parent
                 }
@@ -89,23 +92,24 @@ Rectangle {
         // Password Input
         Rectangle {
             width: parent.width
-            height: 40
+            height: Math.max(45, Math.min(55, root.height * 0.07))
             color: "white"
             border.color: "#ccc"
-            radius: 4
+            radius: height / 2
 
             TextInput {
                 id: passwordField
                 anchors.fill: parent
-                anchors.margins: 10
-                text: ""
+                anchors.leftMargin: parent.radius
+                anchors.rightMargin: parent.radius
                 echoMode: TextInput.Password
-                font.pixelSize: 16
                 verticalAlignment: Text.AlignVCenter
+                font.pixelSize: 16
 
                 Text {
                     text: "Придумайте надежный пароль"
                     color: "#aaa"
+                    font.pixelSize: parent.font.pixelSize
                     visible: !parent.text && !parent.activeFocus
                     anchors.centerIn: parent
                 }
@@ -115,23 +119,24 @@ Rectangle {
         // Repeat Password Input
         Rectangle {
             width: parent.width
-            height: 40
+            height: Math.max(45, Math.min(55, root.height * 0.07))
             color: "white"
             border.color: "#ccc"
-            radius: 4
+            radius: height / 2
 
             TextInput {
                 id: repeatPasswordField
                 anchors.fill: parent
-                anchors.margins: 10
-                text: ""
+                anchors.leftMargin: parent.radius
+                anchors.rightMargin: parent.radius
                 echoMode: TextInput.Password
-                font.pixelSize: 16
                 verticalAlignment: Text.AlignVCenter
+                font.pixelSize: 16
 
                 Text {
                     text: "Повторите пароль"
                     color: "#aaa"
+                    font.pixelSize: parent.font.pixelSize
                     visible: !parent.text && !parent.activeFocus
                     anchors.centerIn: parent
                 }
@@ -142,10 +147,10 @@ Rectangle {
         Rectangle {
             id: errorBox
             width: parent.width
-            height: 30
+            height: Math.max(45, Math.min(55, root.height * 0.07))
             color: "white"
             border.color: "#F05C5C"
-            radius: 4
+            radius: 8
             visible: false
 
             Text {
@@ -153,7 +158,7 @@ Rectangle {
                 text: ""
                 color: "red"
                 anchors.centerIn: parent
-                font.pixelSize: 14
+                font.pixelSize: 12
             }
 
             Timer {
@@ -168,22 +173,23 @@ Rectangle {
         // Sign Up Button
         Rectangle {
             width: parent.width
-            height: 40
+            height: Math.max(50, Math.min(60, root.height * 0.1))
             color: "#007bff"
-            radius: 4
+            radius: height / 2
 
             Text {
                 text: "Sign Up!"
                 color: "white"
+                font.pixelSize: 16
                 font.bold: true
                 anchors.centerIn: parent
             }
 
             MouseArea {
                 anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
                 onPressed: parent.opacity = 0.75
                 onReleased: parent.opacity = 1.0
-
                 onClicked: {
                     console.log("[Sign Up] Sign Up button clicked")
                     errorBox.visible = false
@@ -221,13 +227,22 @@ Rectangle {
         }
 
         // Back to Login Link
-        Text {
-            text: "Уже зарегистрированы? Войти"
-            color: "#007bff"
-            font.underline: true
-            anchors.horizontalCenter: parent.horizontalCenter
-            topPadding: 10
+        Rectangle {
+            width: parent.width
+            height: Math.max(50, Math.min(60, root.height * 0.1))
+            color: "transparent"
+            border.color: "#007bff"
+            border.width: 2
+            radius: height / 2
             
+            Text {
+                text: "Уже есть аккаунт? Войти"
+                color: "#007bff"
+                font.pixelSize: 14
+                font.bold: true
+                anchors.centerIn: parent
+            }
+
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor

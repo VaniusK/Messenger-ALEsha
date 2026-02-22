@@ -27,6 +27,8 @@ qt_add_qml_module(client
         src/sign_in.qml
         src/sign_up.qml
         src/chat.qml
+        src/Sidebar.qml
+        src/ChatArea.qml
 )
 target_include_directories(client PRIVATE include)
 target_link_libraries(client PRIVATE Qt6::Quick Qt6::Network)
