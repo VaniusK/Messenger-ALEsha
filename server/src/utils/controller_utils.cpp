@@ -8,10 +8,6 @@ bool find_missed_fields(
     const std::shared_ptr<Json::Value> req_json,
     std::vector<std::string> &&necessary_fields
 ) {
-    if (req_json == nullptr) {
-        resp_json["message"] = "Invalid request: missed json body";
-        return true;
-    }
     std::vector<std::string> unfinded_fields;
     for (const auto &required_field : necessary_fields) {
         if (!(req_json->isMember(required_field))) {
