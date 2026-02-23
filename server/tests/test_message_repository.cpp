@@ -1,4 +1,6 @@
 #include <drogon/orm/Result.h>
+#include <gtest/gtest.h>
+#include <stdexcept>
 #include "fixtures/MessageTestFixture.hpp"
 
 using MessageRepository = messenger::repositories::MessageRepository;
@@ -20,6 +22,30 @@ TEST_F(MessageTestFixture, TestSend) {
     EXPECT_EQ(messages[0].getValueOfId(), message.getValueOfId());
 }
 
+TEST_F(MessageTestFixture, TestSendInvalidChatId) {
+    /* When given chat id does not exist
+    send() should throw runtime error*/
+    EXPECT_THROW(
+        sync_wait(repo_.send(
+            dummy_chat_.getValueOfId() - 1, dummy_user1_.getValueOfId(),
+            "my message", std::nullopt, std::nullopt
+        )),
+        std::runtime_error
+    );
+}
+
+TEST_F(MessageTestFixture, TestSendInvalidSenderId) {
+    /* When given sender id does not exist
+    send() should throw runtime error*/
+    EXPECT_THROW(
+        sync_wait(repo_.send(
+            dummy_chat_.getValueOfId(), dummy_user1_.getValueOfId() - 1,
+            "my message", std::nullopt, std::nullopt
+        )),
+        std::runtime_error
+    );
+}
+
 TEST_F(MessageTestFixture, TestSendOptionals) {
     /* When valid data with optional arguments is provided
     send() should create a new message,
@@ -34,6 +60,16 @@ TEST_F(MessageTestFixture, TestSendOptionals) {
     ));
     std::vector<Message> messages = sync_wait(repo_.getAll());
     EXPECT_EQ(messages.size(), 2);
+    EXPECT_EQ(
+        message.getValueOfReplyToMessageId(), original_message.getValueOfId()
+    );
+    EXPECT_EQ(
+        message.getValueOfForwardedFromUserId(), dummy_user2_.getValueOfId()
+    );
+    EXPECT_EQ(
+        message.getValueOfForwardedFromUserName(),
+        dummy_user2_.getValueOfDisplayName()
+    );
 }
 
 TEST_F(MessageTestFixture, TestSendMultiple) {
