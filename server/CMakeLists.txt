@@ -110,7 +110,7 @@ if(BUILD_TESTS)
     add_executable(server_tests 
         ${TEST_FILES}
     )
-    target_link_libraries(server_tests GTest::gtest_main)
+    target_link_libraries(server_tests GTest::gtest)
     target_link_libraries(server_tests Drogon::Drogon jwt-cpp::jwt-cpp bcrypt)
     target_sources(server_tests PRIVATE ${REPO_SRC})
     aux_source_directory(models DROGON_MODELS)
