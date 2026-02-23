@@ -15,17 +15,15 @@ using namespace api::v1;
 using UserRepo = messenger::repositories::UserRepository;
 using User = drogon_model::messenger_db::Users;
 
-namespace api {
-namespace v1 {
 Task<HttpResponsePtr> UserService::registerUser(
     Json::Value &&request_json,
-    Json::Value response_json
+    Json::Value response_json,
+    std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo
 ) {
-    UserRepo user_repo;
     std::optional<User> user;
     try {
         user =
-            co_await user_repo.getByHandle(request_json["handle"].asString());
+            co_await user_repo->getByHandle(request_json["handle"].asString());
     } catch (std::exception &e) {
         LOG_WARN << "Couldnt't get user by handle: " << e.what();
         response_json["message"] =
@@ -36,13 +34,12 @@ Task<HttpResponsePtr> UserService::registerUser(
     if (user == std::nullopt) {
         std::string password_hash =
             BCrypt::generateHash(request_json["password"].asString());
-        bool success = co_await user_repo.create(
+        bool success = co_await user_repo->create(
             request_json["handle"].asCString(),
             request_json["display_name"].asCString(), password_hash
         );
         if (success) {
             response_json["message"] = "New user was successfully created";
-            response_json["password_hash"] = password_hash;
             RETURN_RESPONSE_CODE_201(response_json)
         } else {
             LOG_WARN << "User wasn't created";
@@ -56,13 +53,15 @@ Task<HttpResponsePtr> UserService::registerUser(
     }
 }
 
-Task<HttpResponsePtr>
-UserService::loginUser(Json::Value &&request_json, Json::Value response_json) {
-    UserRepo user_repo;
+Task<HttpResponsePtr> UserService::loginUser(
+    Json::Value &&request_json,
+    Json::Value response_json,
+    std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo
+) {
     std::optional<User> user;
     try {
         user =
-            co_await user_repo.getByHandle(request_json["handle"].asString());
+            co_await user_repo->getByHandle(request_json["handle"].asString());
     } catch (std::exception &e) {
         LOG_WARN << "Couldnt't get user by handle: " << e.what();
         response_json["message"] = "Internal server error: user wasn't found";
@@ -105,13 +104,12 @@ UserService::loginUser(Json::Value &&request_json, Json::Value response_json) {
 Task<HttpResponsePtr> UserService::getUserById(
     Json::Value &&request_json,
     Json::Value response_json,
-    int64_t user_id
+    int64_t user_id,
+    std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo
 ) {
-    UserRepo user_repo;
-
     std::optional<User> user;
     try {
-        user = co_await user_repo.getById(user_id);
+        user = co_await user_repo->getById(user_id);
     } catch (std::exception &e) {
         LOG_WARN << "Couldnt't get user by id: " << e.what();
         response_json["message"] = "Internal server error: failed to get user";
@@ -130,13 +128,12 @@ Task<HttpResponsePtr> UserService::getUserById(
 Task<HttpResponsePtr> UserService::getUserByHandle(
     Json::Value &&request_json,
     Json::Value response_json,
-    std::string &&user_handle
+    std::string &&user_handle,
+    std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo
 ) {
-    UserRepo user_repo;
-
     std::optional<User> user;
     try {
-        user = co_await user_repo.getByHandle(user_handle);
+        user = co_await user_repo->getByHandle(user_handle);
     } catch (std::exception &e) {
         LOG_WARN << "Couldnt't get user by handle: " << e.what();
         response_json["message"] = "Internal server error: failed to get user";
@@ -152,12 +149,14 @@ Task<HttpResponsePtr> UserService::getUserByHandle(
     }
 }
 
-Task<HttpResponsePtr>
-UserService::searchUser(Json::Value &&request_json, Json::Value response_json) {
-    UserRepo user_repo;
+Task<HttpResponsePtr> UserService::searchUser(
+    Json::Value &&request_json,
+    Json::Value response_json,
+    std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo
+) {
     std::vector<User> users;
     try {
-        users = co_await user_repo.search(
+        users = co_await user_repo->search(
             request_json["query"].asString(), request_json["limit"].asInt64()
         );
     } catch (std::exception &e) {
@@ -173,6 +172,3 @@ UserService::searchUser(Json::Value &&request_json, Json::Value response_json) {
     response_json["results"] = jsonArray;
     RETURN_RESPONSE_CODE_200(response_json)
 }
-
-}  // namespace v1
-}  // namespace api
