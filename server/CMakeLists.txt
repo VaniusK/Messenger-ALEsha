@@ -107,7 +107,7 @@ if(BUILD_TESTS)
     enable_testing()
     
     add_executable(server_tests 
-        tests/test_user_repository.cpp
+        ${REPO_SRC}
     )
     target_link_libraries(server_tests GTest::gtest_main)
     target_link_libraries(server_tests Drogon::Drogon jwt-cpp::jwt-cpp bcrypt)
