@@ -40,7 +40,6 @@ Task<HttpResponsePtr> UserService::registerUser(
         );
         if (success) {
             response_json["message"] = "New user was successfully created";
-            response_json["password_hash"] = password_hash;
             RETURN_RESPONSE_CODE_201(response_json)
         } else {
             LOG_WARN << "User wasn't created";
