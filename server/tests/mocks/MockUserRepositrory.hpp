@@ -7,7 +7,8 @@
 
 using User = drogon_model::messenger_db::Users;
 
-class MockUserRepository : public messenger::repositories::UserRepositoryInterface {
+class MockUserRepository
+    : public messenger::repositories::UserRepositoryInterface {
 public:
     MOCK_METHOD(
         drogon::Task<std::optional<User>>,

@@ -53,8 +53,11 @@ Task<HttpResponsePtr> UserService::registerUser(
     }
 }
 
-Task<HttpResponsePtr>
-UserService::loginUser(Json::Value &&request_json, Json::Value response_json, std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo) {
+Task<HttpResponsePtr> UserService::loginUser(
+    Json::Value &&request_json,
+    Json::Value response_json,
+    std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo
+) {
     std::optional<User> user;
     try {
         user =
@@ -146,8 +149,11 @@ Task<HttpResponsePtr> UserService::getUserByHandle(
     }
 }
 
-Task<HttpResponsePtr>
-UserService::searchUser(Json::Value &&request_json, Json::Value response_json, std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo) {
+Task<HttpResponsePtr> UserService::searchUser(
+    Json::Value &&request_json,
+    Json::Value response_json,
+    std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo
+) {
     std::vector<User> users;
     try {
         users = co_await user_repo->search(
@@ -166,4 +172,3 @@ UserService::searchUser(Json::Value &&request_json, Json::Value response_json, s
     response_json["results"] = jsonArray;
     RETURN_RESPONSE_CODE_200(response_json)
 }
-
