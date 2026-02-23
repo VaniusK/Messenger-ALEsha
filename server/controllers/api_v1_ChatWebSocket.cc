@@ -11,7 +11,7 @@ std::shared_mutex ChatWebSocket::clients_mutex_;
 
 void ChatWebSocket::handleNewMessage(const WebSocketConnectionPtr& wsConnPtr, std::string &&message, const WebSocketMessageType &type)
 {
-    wsConnPtr->send("There is nothing useful");
+    wsConnPtr->send("Otsosi pidoras");
 }
 
 void ChatWebSocket::handleNewConnection(const HttpRequestPtr &req, const WebSocketConnectionPtr& wsConnPtr)
