@@ -17,13 +17,15 @@ using User = drogon_model::messenger_db::Users;
 
 Task<HttpResponsePtr> UserService::registerUser(
     const std::shared_ptr<Json::Value> request_json,
-    const std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo
+    const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
+        user_repo
 ) {
     Json::Value response_json;
     std::optional<User> user;
     try {
         user =
-            co_await user_repo->getByHandle((*request_json)["handle"].asString());
+            co_await user_repo->getByHandle((*request_json)["handle"].asString()
+            );
     } catch (std::exception &e) {
         LOG_WARN << "Couldnt't get user by handle: " << e.what();
         response_json["message"] =
@@ -55,13 +57,15 @@ Task<HttpResponsePtr> UserService::registerUser(
 
 Task<HttpResponsePtr> UserService::loginUser(
     const std::shared_ptr<Json::Value> request_json,
-    const std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo
+    const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
+        user_repo
 ) {
     Json::Value response_json;
     std::optional<User> user;
     try {
         user =
-            co_await user_repo->getByHandle((*request_json)["handle"].asString());
+            co_await user_repo->getByHandle((*request_json)["handle"].asString()
+            );
     } catch (std::exception &e) {
         LOG_WARN << "Couldnt't get user by handle: " << e.what();
         response_json["message"] = "Internal server error: user wasn't found";
@@ -103,7 +107,8 @@ Task<HttpResponsePtr> UserService::loginUser(
 
 Task<HttpResponsePtr> UserService::getUserById(
     int64_t user_id,
-    const std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo
+    const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
+        user_repo
 ) {
     Json::Value response_json;
     std::optional<User> user;
@@ -126,7 +131,8 @@ Task<HttpResponsePtr> UserService::getUserById(
 
 Task<HttpResponsePtr> UserService::getUserByHandle(
     std::string &&user_handle,
-    const std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo
+    const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
+        user_repo
 ) {
     Json::Value response_json;
     std::optional<User> user;
@@ -149,13 +155,15 @@ Task<HttpResponsePtr> UserService::getUserByHandle(
 
 Task<HttpResponsePtr> UserService::searchUser(
     const std::shared_ptr<Json::Value> request_json,
-    const std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo
+    const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
+        user_repo
 ) {
     Json::Value response_json;
     std::vector<User> users;
     try {
         users = co_await user_repo->search(
-            (*request_json)["query"].asString(), (*request_json)["limit"].asInt64()
+            (*request_json)["query"].asString(),
+            (*request_json)["limit"].asInt64()
         );
     } catch (std::exception &e) {
         LOG_WARN << "Failed to search: " << e.what();
