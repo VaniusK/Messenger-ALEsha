@@ -44,6 +44,7 @@ jobs:
             libxcb-cursor0 \
             libxkbcommon-x11-dev \
             libgl-dev \
+            libegl1-mesa-dev \
             libssl-dev \
             libglib2.0-dev \
             imagemagick \
