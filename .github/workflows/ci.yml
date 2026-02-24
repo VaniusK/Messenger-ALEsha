@@ -28,6 +28,39 @@ jobs:
           cmake --build build/client
       - name: Test client
         run: ctest --test-dir build/client --output-on-failure
+        
+      - name: Download linuxdeploy
+        run: |
+          wget -c -nv https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -c -nv https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy*.AppImage
+          
+      - name: Build AppImage (Portable Linux Executable)
+        env:
+          QML_SOURCES_PATHS: client/src
+          OUTPUT: Messenger-Linux.AppImage
+        run: |
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps/
+          touch AppDir/usr/share/icons/hicolor/256x256/apps/messenger.png
+
+          cat << 'EOF' > AppDir/messenger.desktop
+          [Desktop Entry]
+          Type=Application
+          Name=Messenger
+          Exec=client
+          Icon=messenger
+          Categories=Network;
+          EOF
+
+          CLIENT_BIN=$(find build/client -type f -name "client" -executable | head -n 1)
+          if [ -z "$CLIENT_BIN" ]; then echo "Client binary not found!"; exit 1; fi
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir --executable "$CLIENT_BIN" --desktop-file AppDir/messenger.desktop --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/messenger.png --plugin qt --output appimage
+
+      - name: Upload Linux AppImage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Messenger-Linux-AppImage
+          path: Messenger-Linux.AppImage
     
   run-format:
     runs-on: ubuntu-latest
@@ -90,30 +123,3 @@ jobs:
       
       - name: Cleanup
         run: docker compose down -v
-      
-      - name: Download linuxdeploy
-        run: |
-          wget -c -nv https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          wget -c -nv https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
-          chmod +x linuxdeploy*.AppImage
-          
-      - name: Build AppImage (Portable Linux Executable)
-        env:
-          QML_SOURCES_PATHS: client/src
-          OUTPUT: Messenger-Linux.AppImage
-        run: |
-          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps/
-          touch AppDir/usr/share/icons/hicolor/256x256/apps/messenger.png
-
-          cat << 'EOF' > AppDir/messenger.desktop
-          [Desktop Entry]
-          Type=Application
-          Name=Messenger
-          Exec=client
-          Icon=messenger
-          Categories=Network;
-          EOF
-
-          CLIENT_BIN=$(find build/client -type f -name "client" -executable | head -n 1)
-          if [ -z "$CLIENT_BIN" ]; then echo "Client binary not found!"; exit 1; fi
-          ./linuxdeploy-x86_64.AppImage --appdir AppDir --executable "$CLIENT_BIN" --desktop-file AppDir/messenger.desktop --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/messenger.png --plugin qt --output appimage
