@@ -110,3 +110,16 @@ Task<bool> MessageRepository::edit(int64_t id, std::string text) {
         throw std::runtime_error("Database error");
     }
 }
+
+Task<bool> MessageRepository::remove(int64_t id) {
+    auto mapper = getMapper();
+    try {
+        Message message = co_await mapper.findByPrimaryKey(id);
+        co_await mapper.deleteByPrimaryKey(id);
+        co_return true;
+    } catch (const UnexpectedRows &e) {
+        co_return false;
+    } catch (const DrogonDbException &e) {
+        throw std::runtime_error("Database error");
+    }
+}

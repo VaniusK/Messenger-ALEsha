@@ -26,6 +26,7 @@ public:
         int64_t limit
     ) = 0;
     virtual drogon::Task<bool> edit(int64_t id, std::string text) = 0;
+    virtual drogon::Task<bool> remove(int64_t id) = 0;
 };
 
 class MessageRepository : public MessageRepositoryInterface {
@@ -46,6 +47,7 @@ public:
     ) override;
 
     drogon::Task<bool> edit(int64_t id, std::string text) override;
+    drogon::Task<bool> remove(int64_t id) override;
 
 private:
     drogon::orm::CoroMapper<Message> getMapper() {
