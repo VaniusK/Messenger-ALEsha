@@ -61,6 +61,7 @@
 | `removeMember(chat_id, user_id)`                    | Удалить участника                          | `bool`                |
 | `updateMemberRole(chat_id, user_id, new_role)`          | Изменить роль участника                    | `bool`                |
 | `updateInfo(chat_id, name?, avatar?, description?)` | Обновить инфо чата                         | `bool`                |
+| `markAsRead(chat_id, user_id, last_read_message_id)`                 | Обновить last_read_message_id | `bool`            |
 
 ### ChatPreview(TODO)
 
@@ -103,7 +104,6 @@
 | `send(chat_id, sender_id, text, reply_to_id?, forwarded_from_id?)` | Отправить сообщение           | `Message`         |
 | `edit(message_id, new_text)`                                  | Редактировать сообщение       | `bool`            |
 | `remove(message_id)`                                          | Удалить сообщение             | `bool`            |
-| `markAsRead(chat_id, user_id, last_read_message_id)`                 | Обновить last_read_message_id | `void`            |
 
 Пагинация через before_id` + `limit`
 
