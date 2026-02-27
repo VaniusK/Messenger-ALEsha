@@ -1,4 +1,4 @@
-## Users(TODO)
+## Users
 
 ### Model: User
 | Поле | Тип | Описание |
@@ -51,6 +51,11 @@
 
 | Метод                                                   | Описание                                   | Возвращает            |
 | ------------------------------------------------------- | ------------------------------------------ | --------------------- |
+| `getMessageById(message_id)`                                         | Получить сообщение            | `Message?`        |
+| `getMessagesByChat(chat_id, before_id?, limit)`                        | Сообщения чата с пагинацией   | `vector<Message>` |
+| `sendMessage(chat_id, sender_id, text, reply_to_id?, forwarded_from_id?)` | Отправить сообщение           | `Message`         |
+| `editMessage(message_id, new_text)`                                  | Редактировать сообщение       | `bool`            |
+| `removeMessage(message_id)`                                          | Удалить сообщение             | `bool`            |
 | `getById(chat_id)`                                  | Получить чат по ID                         | `Chat?`               |
 | `getByUser(user_id)`                                 | Список чатов пользователя                  | `vector<ChatPreview>` |
 | `getOrCreateDirect(user1_id, user2_id)`             | Получить или создать личку (идемпотентно!) | `Chat`                |
@@ -81,7 +86,7 @@
 
 ---
 
-## Messages(TODO)
+## Messages(Internal, use ChatRepository for API instead)
 
 ### Model: Message
 | Поле | Тип | Описание |
