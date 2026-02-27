@@ -1,5 +1,6 @@
 #include "repositories/MessageRepository.hpp"
 #include <drogon/orm/Criteria.h>
+#include <drogon/orm/Exception.h>
 #include <stdexcept>
 #include "repositories/UserRepository.hpp"
 
@@ -89,6 +90,22 @@ Task<std::vector<Message>> MessageRepository::getByChat(
 
         );
         co_return messages;
+    } catch (const DrogonDbException &e) {
+        throw std::runtime_error("Database error");
+    }
+}
+
+Task<bool> MessageRepository::edit(int64_t id, std::string text) {
+    auto mapper = getMapper();
+    try {
+        Message message = co_await mapper.findByPrimaryKey(id);
+        message.setText(text);
+        trantor::Date now = trantor::Date::date();
+        message.setEditedAt(now);
+        co_await mapper.update(message);
+        co_return true;
+    } catch (const UnexpectedRows &e) {
+        co_return false;
     } catch (const DrogonDbException &e) {
         throw std::runtime_error("Database error");
     }
