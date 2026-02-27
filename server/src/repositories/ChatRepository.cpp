@@ -143,6 +143,9 @@ Task<std::optional<Chat>> ChatRepository::getById(int64_t id) {
     }
 }
 
+// TODO: Сейчас это 2N запросов. Можно написать очень страшный запрос на сыром
+// SQL, чтобы получить 2 запроса. Выиграем немного задержки на пинге.
+
 Task<std::vector<ChatPreview>> ChatRepository::getByUser(int64_t user_id) {
     auto mapper = getMapper();
     auto chat_member_mapper = getChatMemberMapper();
