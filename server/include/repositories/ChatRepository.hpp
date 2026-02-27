@@ -24,8 +24,6 @@ public:
         : message_repo_(std::move(message_repo)) {
     }
 
-    virtual drogon::Task<Chat>
-    getOrCreateDirect(int64_t user1_id, int64_t user2_id) = 0;
     virtual drogon::Task<std::optional<Message>> getMessageById(int64_t id) = 0;
     virtual drogon::Task<std::vector<Message>> getAllMessages() = 0;
     virtual drogon::Task<Message> sendMessage(
@@ -42,6 +40,10 @@ public:
     ) = 0;
     virtual drogon::Task<bool> editMessage(int64_t id, std::string text) = 0;
     virtual drogon::Task<bool> removeMessage(int64_t id) = 0;
+    virtual drogon::Task<Chat>
+    getOrCreateDirect(int64_t user1_id, int64_t user2_id) = 0;
+    virtual drogon::Task<std::optional<Chat>>
+    getDirect(int64_t user1_id, int64_t user2_id) = 0;
 
 private:
     std::unique_ptr<MessageRepositoryInterface> message_repo_;
@@ -50,8 +52,6 @@ private:
 class ChatRepository : public ChatRepositoryInterface {
 public:
     using ChatRepositoryInterface::ChatRepositoryInterface;
-    drogon::Task<Chat> getOrCreateDirect(int64_t user1_id, int64_t user2_id)
-        override;
 
     drogon::Task<std::optional<Message>> getMessageById(int64_t id) override;
     drogon::Task<std::vector<Message>> getAllMessages() override;
@@ -70,6 +70,10 @@ public:
 
     drogon::Task<bool> editMessage(int64_t id, std::string text) override;
     drogon::Task<bool> removeMessage(int64_t id) override;
+    drogon::Task<Chat> getOrCreateDirect(int64_t user1_id, int64_t user2_id)
+        override;
+    drogon::Task<std::optional<Chat>>
+    getDirect(int64_t user1_id, int64_t user2_id) override;
 
 private:
     drogon::orm::CoroMapper<Chat> getMapper() {

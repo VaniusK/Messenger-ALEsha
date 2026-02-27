@@ -95,3 +95,30 @@ ChatRepository::getOrCreateDirect(int64_t user1_id, int64_t user2_id) {
         throw std::runtime_error("Database error");
     }
 }
+
+Task<std::optional<Chat>>
+ChatRepository::getDirect(int64_t user1_id, int64_t user2_id) {
+    auto mapper = getMapper();
+    auto chat_member_mapper = getChatMemberMapper();
+
+    if (user1_id > user2_id) {
+        std::swap(user1_id, user2_id);
+    }
+
+    try {
+        std::vector<Chat> chats = co_await mapper.findBy(
+            Criteria(
+                Chat::Cols::_direct_user1_id, CompareOperator::EQ, user1_id
+            ) &&
+            Criteria(
+                Chat::Cols::_direct_user2_id, CompareOperator::EQ, user2_id
+            )
+        );
+        if (!chats.empty()) {
+            co_return chats[0];
+        }
+        co_return std::nullopt;
+    } catch (const DrogonDbException &e) {
+        throw std::runtime_error("Database error");
+    }
+}
