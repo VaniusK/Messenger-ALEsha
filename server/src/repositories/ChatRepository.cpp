@@ -1,5 +1,6 @@
 #include "repositories/ChatRepository.hpp"
 #include <drogon/orm/Criteria.h>
+#include <drogon/orm/Exception.h>
 #include <stdexcept>
 #include "repositories/MessageRepository.hpp"
 #include "utils/Enum.hpp"
@@ -117,6 +118,19 @@ ChatRepository::getDirect(int64_t user1_id, int64_t user2_id) {
         if (!chats.empty()) {
             co_return chats[0];
         }
+        co_return std::nullopt;
+    } catch (const DrogonDbException &e) {
+        throw std::runtime_error("Database error");
+    }
+}
+
+Task<std::optional<Chat>> ChatRepository::getById(int64_t id) {
+    auto mapper = getMapper();
+
+    try {
+        Chat chat = co_await mapper.findByPrimaryKey(id);
+        co_return chat;
+    } catch (UnexpectedRows &e) {
         co_return std::nullopt;
     } catch (const DrogonDbException &e) {
         throw std::runtime_error("Database error");

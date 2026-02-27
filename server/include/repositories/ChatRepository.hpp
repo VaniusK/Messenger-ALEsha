@@ -44,6 +44,7 @@ public:
     getOrCreateDirect(int64_t user1_id, int64_t user2_id) = 0;
     virtual drogon::Task<std::optional<Chat>>
     getDirect(int64_t user1_id, int64_t user2_id) = 0;
+    virtual drogon::Task<std::optional<Chat>> getById(int64_t id) = 0;
 
 private:
     std::unique_ptr<MessageRepositoryInterface> message_repo_;
@@ -74,6 +75,7 @@ public:
         override;
     drogon::Task<std::optional<Chat>>
     getDirect(int64_t user1_id, int64_t user2_id) override;
+    drogon::Task<std::optional<Chat>> getById(int64_t id) override;
 
 private:
     drogon::orm::CoroMapper<Chat> getMapper() {
