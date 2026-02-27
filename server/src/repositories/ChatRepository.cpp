@@ -158,7 +158,7 @@ Task<std::vector<ChatPreview>> ChatRepository::getByUser(int64_t user_id) {
         std::unordered_map<int64_t, ChatMember> chat_id_to_member;
         std::transform(
             members.begin(), members.end(), std::back_inserter(chat_ids),
-            [chat_id_to_member](const ChatMember &m) mutable {
+            [&chat_id_to_member](const ChatMember &m) mutable {
                 chat_id_to_member[m.getValueOfChatId()] = m;
                 return m.getValueOfChatId();
             }
@@ -186,21 +186,17 @@ Task<std::vector<ChatPreview>> ChatRepository::getByUser(int64_t user_id) {
                 .title = chat.getValueOfName(),
                 .avatar_path = chat.getValueOfAvatarPath(),
                 .last_message = last_message,
-                .unread_count = static_cast<int64_t>(
-                    (co_await message_mapper.limit(999)
-                         .orderBy(Message::Cols::_id, SortOrder::DESC)
-                         .findBy(
-                             Criteria(
-                                 Message::Cols::_chat_id, CompareOperator::EQ,
-                                 chat.getValueOfId()
-                             ) &&
-                             Criteria(
-                                 Message::Cols::_id, CompareOperator::GT,
-                                 member.getValueOfLastReadMessageId()
-                             )
-                         ))
-                        .size()
-                )  // Логику оставляю тебе
+                .unread_count =
+                    static_cast<int64_t>(co_await message_mapper.count(
+                        Criteria(
+                            Message::Cols::_chat_id, CompareOperator::EQ,
+                            chat.getValueOfId()
+                        ) &&
+                        Criteria(
+                            Message::Cols::_id, CompareOperator::GT,
+                            member.getValueOfLastReadMessageId()
+                        )
+                    ))
             });
         }
         co_return previews;
