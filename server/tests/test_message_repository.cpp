@@ -14,7 +14,7 @@ TEST_F(MessageTestFixture, TestSend) {
     send() should create a new message,
     and it should be retrievable via getAll()*/
     Message message = sync_wait(repo_.send(
-        dummy_chat_.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
         std::nullopt, std::nullopt
     ));
     std::vector<Message> messages = sync_wait(repo_.getAll());
@@ -27,7 +27,7 @@ TEST_F(MessageTestFixture, TestSendInvalidChatId) {
     send() should throw runtime error*/
     EXPECT_THROW(
         sync_wait(repo_.send(
-            dummy_chat_.getValueOfId() - 1, dummy_user1_.getValueOfId(),
+            dummy_chat_1.getValueOfId() - 1, dummy_user1_.getValueOfId(),
             "my message", std::nullopt, std::nullopt
         )),
         std::runtime_error
@@ -39,7 +39,7 @@ TEST_F(MessageTestFixture, TestSendInvalidSenderId) {
     send() should throw runtime error*/
     EXPECT_THROW(
         sync_wait(repo_.send(
-            dummy_chat_.getValueOfId(), dummy_user1_.getValueOfId() - 1,
+            dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId() - 1,
             "my message", std::nullopt, std::nullopt
         )),
         std::runtime_error
@@ -51,11 +51,11 @@ TEST_F(MessageTestFixture, TestSendOptionals) {
     send() should create a new message,
     and it should be retrievable via getAll()*/
     Message original_message = sync_wait(repo_.send(
-        dummy_chat_.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
         std::nullopt, std::nullopt
     ));
     Message message = sync_wait(repo_.send(
-        dummy_chat_.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
         original_message.getValueOfId(), dummy_user2_.getValueOfId()
     ));
     std::vector<Message> messages = sync_wait(repo_.getAll());
@@ -77,15 +77,15 @@ TEST_F(MessageTestFixture, TestSendMultiple) {
     send() should create a new message for each,
     and they should be retrievable via getAll()*/
     Message message1 = sync_wait(repo_.send(
-        dummy_chat_.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
         std::nullopt, std::nullopt
     ));
     Message message2 = sync_wait(repo_.send(
-        dummy_chat_.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
         std::nullopt, std::nullopt
     ));
     Message message3 = sync_wait(repo_.send(
-        dummy_chat_.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
         std::nullopt, std::nullopt
     ));
     std::vector<Message> messages = sync_wait(repo_.getAll());
@@ -96,7 +96,7 @@ TEST_F(MessageTestFixture, TestGetById) {
     /* When message with given id exists
     getById() should return in*/
     Message message = sync_wait(repo_.send(
-        dummy_chat_.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
         std::nullopt, std::nullopt
     ));
     auto result = sync_wait(repo_.getById(message.getValueOfId()));
@@ -108,9 +108,88 @@ TEST_F(MessageTestFixture, TestGetByIdFail) {
     /* When message with given id does not exist
     getById() should return nullopt*/
     Message message = sync_wait(repo_.send(
-        dummy_chat_.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
         std::nullopt, std::nullopt
     ));
     auto result = sync_wait(repo_.getById(message.getValueOfId() + 1));
     EXPECT_FALSE(result.has_value());
+}
+
+TEST_F(MessageTestFixture, TestGetByChat) {
+    /* When messages in given chat exist
+    getByChat() should return them
+    and nothing else*/
+    Message message1 = sync_wait(repo_.send(
+        dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        std::nullopt, std::nullopt
+    ));
+    Message message2 = sync_wait(repo_.send(
+        dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        std::nullopt, std::nullopt
+    ));
+    Message message3 = sync_wait(repo_.send(
+        dummy_chat_2.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        std::nullopt, std::nullopt
+    ));
+    std::vector<Message> messages = sync_wait(
+        repo_.getByChat(dummy_chat_1.getValueOfId(), std::nullopt, 100)
+    );
+    EXPECT_EQ(
+        std::count_if(
+            messages.begin(), messages.end(),
+            [&message1](const Message &u) {
+                return message1.getValueOfId() == u.getValueOfId();
+            }
+        ),
+        1
+    );
+    EXPECT_EQ(
+        std::count_if(
+            messages.begin(), messages.end(),
+            [&message2](const Message &u) {
+                return message2.getValueOfId() == u.getValueOfId();
+            }
+        ),
+        1
+    );
+    EXPECT_EQ(
+        std::count_if(
+            messages.begin(), messages.end(),
+            [&message3](const Message &u) {
+                return message3.getValueOfId() == u.getValueOfId();
+            }
+        ),
+        0
+    );
+}
+
+TEST_F(MessageTestFixture, TestGetByChatOptionals) {
+    /* When messages in given chat exist
+    getByChat() should return them
+    respecting before_id and limit params*/
+    Message message1 = sync_wait(repo_.send(
+        dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        std::nullopt, std::nullopt
+    ));
+    Message message2 = sync_wait(repo_.send(
+        dummy_chat_1.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        std::nullopt, std::nullopt
+    ));
+    Message message3 = sync_wait(repo_.send(
+        dummy_chat_2.getValueOfId(), dummy_user1_.getValueOfId(), "my message",
+        std::nullopt, std::nullopt
+    ));
+    std::vector<Message> messages = sync_wait(
+        repo_.getByChat(dummy_chat_1.getValueOfId(), message2.getValueOfId(), 1)
+    );
+    EXPECT_EQ(messages.size(), 1);
+    EXPECT_EQ(
+        std::count_if(
+            messages.begin(), messages.end(),
+            [&message2](const Message &u) {
+                return message2.getValueOfId() == u.getValueOfId();
+            }
+        ),
+        1
+    );
 }

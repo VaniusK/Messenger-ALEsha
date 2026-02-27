@@ -19,7 +19,9 @@ protected:
     UserRepository user_repo_ = UserRepository();
     User dummy_user1_;
     User dummy_user2_;
-    Chat dummy_chat_;
+    User dummy_user3_;
+    Chat dummy_chat_1;
+    Chat dummy_chat_2;
 
     void SetUp() override {
         auto dbClient = app().getDbClient();
@@ -33,11 +35,19 @@ protected:
         drogon::sync_wait(
             user_repo_.create("dummy_user2", "dummy_user2", "hash")
         );
+        drogon::sync_wait(
+            user_repo_.create("dummy_user3", "dummy_user3", "hash")
+        );
         dummy_user2_ =
             drogon::sync_wait(user_repo_.getByHandle("dummy_user2")).value();
+        dummy_user3_ =
+            drogon::sync_wait(user_repo_.getByHandle("dummy_user3")).value();
 
-        dummy_chat_ = sync_wait(chat_repo_.getOrCreateDirect(
+        dummy_chat_1 = sync_wait(chat_repo_.getOrCreateDirect(
             dummy_user1_.getValueOfId(), dummy_user2_.getValueOfId()
+        ));
+        dummy_chat_2 = sync_wait(chat_repo_.getOrCreateDirect(
+            dummy_user1_.getValueOfId(), dummy_user3_.getValueOfId()
         ));
     }
 };
