@@ -61,7 +61,6 @@ aux_source_directory(services SERVICES_SRC) # get all files from services
 
 aux_source_directory(controllers CTL_SRC) # get all files from controllers
 aux_source_directory(filters FILTER_SRC) # get all files from filters
-aux_source_directory(plugins PLUGIN_SRC) # get all files from plugins
 aux_source_directory(models MODEL_SRC) # get all files from models
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${bcrypt_SOURCE_DIR}/include) # include bcrypt headers
@@ -76,7 +75,6 @@ target_sources(${PROJECT_NAME}
                ${SERVICES_SRC}
                ${CTL_SRC}
                ${FILTER_SRC}
-               ${PLUGIN_SRC}
                ${MODEL_SRC}) # add all sources to the executable
 
 # Google Test setup
@@ -110,14 +108,20 @@ if(BUILD_TESTS)
     add_executable(server_tests 
         ${TEST_FILES}
     )
-    target_link_libraries(server_tests GTest::gtest)
+    target_link_libraries(server_tests GTest::gtest GTest::gmock)
     target_link_libraries(server_tests Drogon::Drogon jwt-cpp::jwt-cpp bcrypt)
-    target_sources(server_tests PRIVATE ${REPO_SRC})
-    aux_source_directory(models DROGON_MODELS)
-    aux_source_directory(services SERVICES_SRC) 
+
+    aux_source_directory(src SRC_SRC) # get all files from src
+    aux_source_directory(src/repositories REPO_SRC) # get all files from src/repositories
+    aux_source_directory(src/utils UTILS_SRC) # get all files from src/utils
+    aux_source_directory(services SERVICES_SRC) # get all files from services
+    aux_source_directory(controllers CTL_SRC) # get all files from controllers
+    aux_source_directory(filters FILTER_SRC) # get all files from filters
+    aux_source_directory(models MODEL_SRC) # get all files from models
+
     target_include_directories(server_tests PRIVATE ${bcrypt_SOURCE_DIR}/include) # include bcrypt headers
     target_include_directories(server_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include) # include project headers
-    target_sources(server_tests PRIVATE ${DROGON_MODELS} ${SERVICES_SRC})
+    target_sources(server_tests PRIVATE ${REPO_SRC} ${UTILS_SRC} ${SERVICES_SRC} ${CTL_SRC} ${FILTER_SRC} ${MODEL_SRC})
     
     include(GoogleTest)
     gtest_discover_tests(server_tests)

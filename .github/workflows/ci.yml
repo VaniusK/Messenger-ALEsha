@@ -9,25 +9,108 @@ on:
 jobs:
 
   build-client:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+
       - name: Cache client dependencies
         uses: actions/cache@v4
         with:
           path: build/client/_deps
-          key: client-deps-v2-${{ hashFiles('client/CMakeLists.txt') }}
-          restore-keys: client-deps-v2-
-      - name: Install Qt
+          key: client-deps-v3-${{ hashFiles('client/CMakeLists.txt') }}
+          restore-keys: client-deps-v3-
+
+      - name: Cache Qt
+        id: cache-qt
+        uses: actions/cache@v4
+        with:
+          path: ~/Qt
+          key: qt-6.7.3-linux-gcc
+
+      - name: Install system build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt6-base-dev qt6-declarative-dev qml6-module-qtquick
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            libxcb-xinerama0-dev \
+            libxcb-icccm4-dev \
+            libxcb-image0-dev \
+            libxcb-keysyms1-dev \
+            libxcb-render-util0-dev \
+            libxcb-shape0-dev \
+            libxcb-xkb-dev \
+            libxcb-cursor0 \
+            libxkbcommon-x11-dev \
+            libgl-dev \
+            libegl1-mesa-dev \
+            libssl-dev \
+            libglib2.0-dev \
+            imagemagick \
+            libfuse2
+
+      - name: Install Qt via aqtinstall
+        if: steps.cache-qt.outputs.cache-hit != 'true'
+        run: |
+          python3 -m pip install aqtinstall
+          aqt install-qt linux desktop 6.7.3 linux_gcc_64 \
+            --outputdir ~/Qt \
+            -m qtwebsockets
+
+      - name: Export Qt path
+        run: echo "QT_ROOT=$HOME/Qt/6.7.3/gcc_64" >> $GITHUB_ENV
+
       - name: Build client
         run: |
-          cmake -B build/client -S client
-          cmake --build build/client
+          cmake -B build/client -S client \
+            -DCMAKE_PREFIX_PATH=${{ env.QT_ROOT }} \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/client --parallel
+
       - name: Test client
         run: ctest --test-dir build/client --output-on-failure
+
+      - name: Download linuxdeploy
+        run: |
+          wget -c -nv https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -c -nv https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy*.AppImage
+
+      - name: Build AppImage (Portable Linux Executable)
+        env:
+          QML_SOURCES_PATHS: client/src
+          OUTPUT: Messenger-Linux.AppImage
+          QMAKE: ${{ env.QT_ROOT }}/bin/qmake
+        run: |
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps/
+          convert alesha_logo.png -resize 256x256\! AppDir/usr/share/icons/hicolor/256x256/apps/messenger.png
+
+          cat > AppDir/messenger.desktop << 'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=Messenger
+          Exec=client
+          Icon=messenger
+          Categories=Network;
+          EOF
+
+          CLIENT_BIN=$(find build/client -type f -name "client" -executable | head -n 1)
+          if [ -z "$CLIENT_BIN" ]; then echo "Client binary not found!"; exit 1; fi
+
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir AppDir \
+            --executable "$CLIENT_BIN" \
+            --desktop-file AppDir/messenger.desktop \
+            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/messenger.png \
+            --plugin qt \
+            --output appimage
+
+      - name: Upload Linux AppImage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Messenger-Linux-AppImage
+          path: Messenger-Linux.AppImage
     
   run-format:
     runs-on: ubuntu-latest
