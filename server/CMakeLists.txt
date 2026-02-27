@@ -103,12 +103,12 @@ if(BUILD_TESTS)
     FetchContent_MakeAvailable(googletest jwt-cpp bcrypt) # make available for the project
 
     enable_testing()
+    aux_source_directory(tests TEST_FILES)
     
     add_executable(server_tests 
-        tests/test_user_repository.cpp
-        tests/users_controller_test.cpp
+        ${TEST_FILES}
     )
-    target_link_libraries(server_tests GTest::gtest_main GTest::gmock)
+    target_link_libraries(server_tests GTest::gtest GTest::gmock)
     target_link_libraries(server_tests Drogon::Drogon jwt-cpp::jwt-cpp bcrypt)
 
     aux_source_directory(src SRC_SRC) # get all files from src
