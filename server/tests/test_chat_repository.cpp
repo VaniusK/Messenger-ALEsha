@@ -4,6 +4,7 @@
 
 using ChatRepository = messenger::repositories::ChatRepository;
 using Chat = drogon_model::messenger_db::Chats;
+using ChatMember = drogon_model::messenger_db::ChatMembers;
 using ChatPreview = messenger::dto::ChatPreview;
 
 using namespace drogon;
@@ -91,6 +92,10 @@ TEST_F(ChatTestFixture, TestGetByUser) {
     Chat chat3 = sync_wait(repo_.getOrCreateDirect(
         dummy_user2_.getValueOfId(), dummy_user3_.getValueOfId()
     ));
+    Message message = sync_wait(repo_.sendMessage(
+        chat1.getValueOfId(), dummy_user2_.getValueOfId(), "my message",
+        std::nullopt, std::nullopt
+    ));
     std::vector<ChatPreview> chatPreviews =
         sync_wait(repo_.getByUser(dummy_user1_.getValueOfId()));
     EXPECT_EQ(chatPreviews.size(), 2);
@@ -113,4 +118,67 @@ TEST_F(ChatTestFixture, TestGetByUser) {
         ),
         1
     );
+
+    ChatPreview chat1_preview = *std::find_if(
+        chatPreviews.begin(), chatPreviews.end(),
+        [&chat1](const ChatPreview &u) {
+            return chat1.getValueOfId() == u.chat_id;
+        }
+    );
+    EXPECT_EQ(chat1_preview.unread_count, 1);
+}
+
+TEST_F(ChatTestFixture, TestMarkAsRead) {
+    /* When valid data is provided,
+    markAsRead() should return true
+    and update chat_member*/
+    Chat chat = sync_wait(repo_.getOrCreateDirect(
+        dummy_user1_.getValueOfId(), dummy_user2_.getValueOfId()
+    ));
+    Message message = sync_wait(repo_.sendMessage(
+        chat.getValueOfId(), dummy_user2_.getValueOfId(), "my message",
+        std::nullopt, std::nullopt
+    ));
+    bool result = sync_wait(repo_.markAsRead(
+        chat.getValueOfId(), dummy_user1_.getValueOfId(), message.getValueOfId()
+    ));
+    EXPECT_TRUE(result);
+    std::vector<ChatPreview> chatPreviews =
+        sync_wait(repo_.getByUser(dummy_user1_.getValueOfId()));
+    EXPECT_EQ(chatPreviews.size(), 1);
+    EXPECT_EQ(chatPreviews[0].unread_count, 0);
+}
+
+TEST_F(ChatTestFixture, TestMarkAsReadFailNoChat) {
+    /* When chat does not exist,
+    markAsRead() should return false*/
+    Chat chat = sync_wait(repo_.getOrCreateDirect(
+        dummy_user1_.getValueOfId(), dummy_user2_.getValueOfId()
+    ));
+    Message message = sync_wait(repo_.sendMessage(
+        chat.getValueOfId(), dummy_user2_.getValueOfId(), "my message",
+        std::nullopt, std::nullopt
+    ));
+    bool result = sync_wait(repo_.markAsRead(
+        chat.getValueOfId() - 1, dummy_user1_.getValueOfId(),
+        message.getValueOfId()
+    ));
+    EXPECT_FALSE(result);
+}
+
+TEST_F(ChatTestFixture, TestMarkAsReadFailNoUser) {
+    /* When user does not exist,
+    markAsRead() should return false*/
+    Chat chat = sync_wait(repo_.getOrCreateDirect(
+        dummy_user1_.getValueOfId(), dummy_user2_.getValueOfId()
+    ));
+    Message message = sync_wait(repo_.sendMessage(
+        chat.getValueOfId(), dummy_user2_.getValueOfId(), "my message",
+        std::nullopt, std::nullopt
+    ));
+    bool result = sync_wait(repo_.markAsRead(
+        chat.getValueOfId(), dummy_user1_.getValueOfId() - 1,
+        message.getValueOfId()
+    ));
+    EXPECT_FALSE(result);
 }

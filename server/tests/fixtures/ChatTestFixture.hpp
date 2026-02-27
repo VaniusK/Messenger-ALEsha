@@ -13,7 +13,6 @@ using Message = messenger::repositories::Message;
 class ChatTestFixture : public DbTestFixture {
 private:
     UserRepository user_repo_ = UserRepository();
-    MessageRepository message_repo_ = MessageRepository();
 
 protected:
     ChatRepository repo_ =
@@ -21,7 +20,6 @@ protected:
     User dummy_user1_;
     User dummy_user2_;
     User dummy_user3_;
-    Message dummy_message1_;
 
 public:
     void SetUp() override {
