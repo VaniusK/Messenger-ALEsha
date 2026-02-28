@@ -6,7 +6,7 @@ FROM drogonframework/drogon AS builder
 WORKDIR /app
 COPY . .
 
-RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release DCMAKE_CXX_COMPILER=g++-13 -DBUILD_TESTS=ON
+RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-13 -DBUILD_TESTS=ON
 RUN cmake --build build --parallel
 
 # Runtime stage
