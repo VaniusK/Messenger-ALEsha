@@ -224,7 +224,9 @@ Task<std::vector<ChatPreview>> ChatRepository::getByUser(int64_t user_id) {
                 }
             } else {
                 new_title = chat.getValueOfName();
-                new_avatar_path = chat.getValueOfAvatarPath();
+                if (chat.getAvatarPath()) {
+                    new_avatar_path = chat.getValueOfAvatarPath();
+                }
             }
             previews.push_back(ChatPreview{
                 .chat_id = chat.getValueOfId(),
