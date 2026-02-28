@@ -8,9 +8,9 @@ COPY . .
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    g++-13
+    g++-12
 
-RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-13 -DBUILD_TESTS=ON
+RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-12 -DBUILD_TESTS=ON
 RUN cmake --build build --parallel
 
 # Runtime stage
