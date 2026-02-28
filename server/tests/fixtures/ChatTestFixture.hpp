@@ -1,20 +1,27 @@
 #pragma once
 #include "DbTestFixture.hpp"
 #include "repositories/ChatRepository.hpp"
+#include "repositories/MessageRepository.hpp"
 #include "repositories/UserRepository.hpp"
 
 using ChatRepository = messenger::repositories::ChatRepository;
 using UserRepository = messenger::repositories::UserRepository;
+using MessageRepository = messenger::repositories::MessageRepository;
 using User = messenger::repositories::User;
+using Message = messenger::repositories::Message;
 
 class ChatTestFixture : public DbTestFixture {
 private:
     UserRepository user_repo_ = UserRepository();
 
 protected:
-    ChatRepository repo_ = ChatRepository();
+    ChatRepository repo_ = ChatRepository(
+        std::make_unique<MessageRepository>(),
+        std::make_unique<UserRepository>()
+    );
     User dummy_user1_;
     User dummy_user2_;
+    User dummy_user3_;
 
 public:
     void SetUp() override {
@@ -31,5 +38,10 @@ public:
         );
         dummy_user2_ =
             drogon::sync_wait(user_repo_.getByHandle("dummy_user2")).value();
+        drogon::sync_wait(
+            user_repo_.create("dummy_user3", "dummy_user3", "hash")
+        );
+        dummy_user3_ =
+            drogon::sync_wait(user_repo_.getByHandle("dummy_user3")).value();
     }
 };

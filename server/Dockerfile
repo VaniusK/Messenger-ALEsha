@@ -6,6 +6,7 @@ FROM drogonframework/drogon AS builder
 WORKDIR /app
 COPY . .
 
+
 RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
 RUN cmake --build build --parallel
 
