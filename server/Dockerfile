@@ -6,7 +6,7 @@ FROM drogonframework/drogon AS builder
 WORKDIR /app
 COPY . .
 
-RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
+RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release DCMAKE_CXX_COMPILER=g++-13 -DBUILD_TESTS=ON
 RUN cmake --build build --parallel
 
 # Runtime stage
@@ -15,6 +15,7 @@ FROM ubuntu:22.04
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     libc-ares2 \
+    apt-get install g++-13 \
     libjsoncpp25 \
     libmariadb3 \
     libsqlite3-0 \
