@@ -164,7 +164,6 @@ jobs:
           OutputBaseFilename=Messenger-Alesha
           Compression=lzma2
           SolidCompression=yes
-          SetupIconFile=deploy\alesha_logo.png
 
           [Files]
           Source: "deploy\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
