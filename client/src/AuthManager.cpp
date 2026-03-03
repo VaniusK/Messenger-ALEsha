@@ -29,7 +29,7 @@ void AuthManager::registerUser(
     QJsonDocument doc(json);
     QByteArray data = doc.toJson();
 
-    QUrl url("http://127.0.0.1:5555/api/v1/auth/register");
+    QUrl url("http://158.160.163.224:5555/api/v1/auth/register");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -60,7 +60,7 @@ void AuthManager::loginUser(const QString &handle, const QString &password) {
     QJsonDocument doc(json);
     QByteArray data = doc.toJson();
 
-    QUrl url("http://127.0.0.1:5555/api/v1/auth/login");
+    QUrl url("http://158.160.163.224:5555/api/v1/auth/login");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 

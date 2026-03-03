@@ -47,8 +47,8 @@ private slots:
 private:
     QNetworkAccessManager *m_networkManager;
     QWebSocket *m_webSocket;
-    const QString m_baseUrl = "http://127.0.0.1:5555/api/v1";
-    const QString m_wsUrl = "ws://127.0.0.1:5555/api/v1/chat";
+    const QString m_baseUrl = "http://158.160.163.224:5555/api/v1";
+    const QString m_wsUrl = "ws://158.160.163.224:5555/api/v1/chat";
 
     QNetworkRequest createAuthenticatedRequest(const QString &endpoint);
     StateManager *getStateManager();
