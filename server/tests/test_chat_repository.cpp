@@ -224,3 +224,18 @@ TEST_F(ChatTestFixture, TestMarkAsReadFailNoUser) {
     ));
     EXPECT_FALSE(result);
 }
+
+TEST_F(ChatTestFixture, TestCreateGroup) {
+    /* When valid data is provided,
+    CreateGroup should create group chat
+    and return it*/
+    Chat chat = sync_wait(repo_.createGroup(
+        "Чат жабоманов", dummy_user1_.getValueOfId(),
+        {dummy_user1_.getValueOfId(), dummy_user2_.getValueOfId(),
+         dummy_user3_.getValueOfId()}
+    ));
+    auto chat_result = sync_wait(repo_.getById(chat.getValueOfId()));
+    EXPECT_TRUE(chat_result.has_value());
+    EXPECT_EQ(chat_result.value().getValueOfId(), chat.getValueOfId());
+    EXPECT_EQ(chat.getValueOfName(), "Чат жабоманов");
+}
