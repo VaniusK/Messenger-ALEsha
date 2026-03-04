@@ -1,6 +1,7 @@
 #include <drogon/orm/Result.h>
 #include "dto/ChatPreview.hpp"
 #include "fixtures/ChatTestFixture.hpp"
+#include "utils/Enum.hpp"
 
 using ChatRepository = messenger::repositories::ChatRepository;
 using Chat = drogon_model::messenger_db::Chats;
@@ -238,4 +239,43 @@ TEST_F(ChatTestFixture, TestCreateGroup) {
     EXPECT_TRUE(chat_result.has_value());
     EXPECT_EQ(chat_result.value().getValueOfId(), chat.getValueOfId());
     EXPECT_EQ(chat.getValueOfName(), "Чат жабоманов");
+}
+
+TEST_F(ChatTestFixture, TestGetMembers) {
+    /* When valid data is provided,
+    getMembers should return members of the chat*/
+    Chat chat = sync_wait(repo_.createGroup(
+        "Чат жабоманов", dummy_user1_.getValueOfId(),
+        {dummy_user1_.getValueOfId(), dummy_user2_.getValueOfId(),
+         dummy_user3_.getValueOfId()}
+    ));
+    auto chat_members = sync_wait(repo_.getMembers(chat.getValueOfId()));
+    EXPECT_EQ(chat_members.size(), 3);
+    auto chat_member1 = *std::find_if(
+        chat_members.begin(), chat_members.end(),
+        [this](const ChatMember &m) {
+            return m.getValueOfUserId() == dummy_user1_.getValueOfId();
+        }
+    );
+    auto chat_member2 = *std::find_if(
+        chat_members.begin(), chat_members.end(),
+        [this](const ChatMember &m) {
+            return m.getValueOfUserId() == dummy_user2_.getValueOfId();
+        }
+    );
+    auto chat_member3 = *std::find_if(
+        chat_members.begin(), chat_members.end(),
+        [this](const ChatMember &m) {
+            return m.getValueOfUserId() == dummy_user3_.getValueOfId();
+        }
+    );
+    EXPECT_EQ(
+        chat_member1.getValueOfRole(), messenger::models::ChatRole::Owner
+    );
+    EXPECT_EQ(
+        chat_member2.getValueOfRole(), messenger::models::ChatRole::Member
+    );
+    EXPECT_EQ(
+        chat_member3.getValueOfRole(), messenger::models::ChatRole::Member
+    );
 }
