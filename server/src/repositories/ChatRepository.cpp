@@ -92,10 +92,12 @@ ChatRepository::getOrCreateDirect(int64_t user1_id, int64_t user2_id) {
         chat_member1.setChatId(chat.getValueOfId());
         chat_member1.setUserId(user1_id);
         chat_member1.setRole(messenger::models::ChatRole::Member);
+        chat_member1.setChatType(messenger::models::ChatType::Direct);
         co_await chat_member_mapper.insert(chat_member1);
         chat_member2.setChatId(chat.getValueOfId());
         chat_member2.setUserId(user2_id);
         chat_member2.setRole(messenger::models::ChatRole::Member);
+        chat_member2.setChatType(messenger::models::ChatType::Direct);
         co_await chat_member_mapper.insert(chat_member2);
         co_return chat;
     } catch (const DrogonDbException &e) {
@@ -314,6 +316,7 @@ Task<Chat> ChatRepository::createGroup(
             chat_member.setChatId(chat.getValueOfId());
             chat_member.setUserId(id);
             chat_member.setRole(messenger::models::ChatRole::Member);
+            chat_member.setChatType(messenger::models::ChatType::Group);
             co_await chat_member_mapper.insert(chat_member);
         }
         ChatMember creator = co_await chat_member_mapper.findOne(Criteria(
