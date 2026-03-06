@@ -18,6 +18,7 @@ Rectangle {
                 AppState.token = token
                 AppState.currentUserHandle = handleField.text
                 console.log("State token is now:", AppState.token)
+                ChatLayer.connectWebSocket()
                 
                 var loader = root.parent
                 if (loader) {

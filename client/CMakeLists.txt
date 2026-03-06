@@ -12,25 +12,27 @@ find_package(Qt6 REQUIRED COMPONENTS Quick Network WebSockets)
 
 # Client executable
 qt_add_executable(client 
-    src/main.cpp
-    src/AuthManager.cpp
+    src/core/main.cpp
+    src/core/AuthManager.cpp
     include/AuthManager.hpp
-    src/StateManager.cpp
+    src/core/StateManager.cpp
     include/StateManager.hpp
-    src/ChatManager.cpp
+    src/core/ChatManager.cpp
     include/ChatManager.hpp
+    src/core/ConnectionManager.cpp
+    include/ConnectionManager.hpp
 )
 
 qt_add_qml_module(client
     URI messenger_client_uri
     VERSION 1.0
     QML_FILES
-        src/main.qml
-        src/sign_in.qml
-        src/sign_up.qml
-        src/chat.qml
-        src/Sidebar.qml
-        src/ChatArea.qml
+        src/ui/main.qml
+        src/ui/sign_in.qml
+        src/ui/sign_up.qml
+        src/ui/chat.qml
+        src/ui/Sidebar.qml
+        src/ui/ChatArea.qml
 )
 target_include_directories(client PRIVATE include)
 target_link_libraries(client PRIVATE Qt6::Quick Qt6::Network Qt6::WebSockets)

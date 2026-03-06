@@ -29,6 +29,18 @@ Rectangle {
 
         function onIncomingWebSocketMessage(data) {
             console.log("QML WS Event " + JSON.stringify(data))
+            if (data.event_type === "NEW_MESSAGE" && data.data && data.data.message) {
+                var msg = data.data.message
+                if (String(msg.chat_id) === String(activeChatId)) {
+                    msg.is_me = (msg.sender_id === AppState.userId)
+                    var newMessages = currentMessages.slice()
+                    newMessages.push(msg)
+                    currentMessages = newMessages
+                    
+                    messageList.model = currentMessages
+                    messageList.positionViewAtIndex(messageList.count - 1, ListView.End)
+                }
+            }
         }
     }
 
@@ -108,32 +120,32 @@ Rectangle {
             clip: true
             model: currentMessages
             spacing: 10
-
             topMargin: 15
             bottomMargin: 15
-
-            delegate: Rectangle {
+            delegate: Item {
+                width: messageList.width
+                height: Math.max(40, messageText.contentHeight + 20)
+                
                 property var msgData: modelData
                 property bool isMe: msgData.is_me
-
-                width: Math.min(300, messageList.width * 0.7)
-                height: Math.max(40, messageText.contentHeight + 20)
-                radius: 12
-                color: isMe ? "#dcf8c6" : "#ffffff"
-
-                anchors.right: isMe ? parent.right : undefined
-                anchors.left: isMe ? undefined : parent.left
-                anchors.rightMargin: isMe ? 20 : 0
-                anchors.leftMargin: isMe ? 0 : 20
-
-                Text {
-                    id: messageText
-                    text: msgData.text
-                    anchors.fill: parent
-                    anchors.margins: 10
-                    wrapMode: Text.Wrap
-                    font.pixelSize: 14
-                    verticalAlignment: Text.AlignVCenter
+                Rectangle {
+                    width: Math.min(300, messageList.width * 0.7)
+                    height: parent.height
+                    radius: 12
+                    color: isMe ? "#dcf8c6" : "#ffffff"
+                    anchors.right: isMe ? parent.right : undefined
+                    anchors.left: isMe ? undefined : parent.left
+                    anchors.rightMargin: isMe ? 20 : 0
+                    anchors.leftMargin: isMe ? 0 : 20
+                    Text {
+                        id: messageText
+                        text: msgData.text
+                        anchors.fill: parent
+                        anchors.margins: 10
+                        wrapMode: Text.Wrap
+                        font.pixelSize: 14
+                        verticalAlignment: Text.AlignVCenter
+                    }
                 }
             }
         }

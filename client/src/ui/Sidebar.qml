@@ -10,6 +10,8 @@ Rectangle {
 
     property var chatDataList: []
     property bool isSearching: false
+    property string pendingSearchQuery: ""
+
     signal logoutRequested()
     signal chatSelected(string chatId, string chatName)
 
@@ -29,29 +31,48 @@ Rectangle {
                 chatList.model = chatDataList
             }
         }
+
+        function onDirectChatOpened(chatId, chatTitle) {
+            searchInput.text = ""
+            isSearching = false
+            sidebarRoot.chatSelected(chatId, chatTitle)
+        }
+    }
+
+    Connections {
+        target: AppState
+
+        function onUserIdChanged() {
+            if (AppState.userId > 0) {
+                ChatLayer.fetchChats()
+            }
+        }
     }
 
     Component.onCompleted: {
-        ChatLayer.fetchChats()
+        console.log("[Sidebar] Component.onCompleted. userId =", AppState.userId)
+        if (AppState.userId > 0) {
+            ChatLayer.fetchChats()
+        }
     }
 
     Rectangle {
-        id:searchHeader
+        id: searchHeader
         width: parent.width
         height: 100
         color: "#f5f5f5"
         border.color: "#e0e0e0"
         border.width: 1
-        anchors.top: parent.top 
+        anchors.top: parent.top
 
-        RowLayout { 
+        RowLayout {
             anchors.fill: parent
             anchors.margins: 10
             spacing: 10
 
             Rectangle {
                 width: 40
-                height: 40 
+                height: 40
                 radius: 20
                 color: "#e0e0e0"
                 Layout.alignment: Qt.AlignVCenter
@@ -62,12 +83,12 @@ Rectangle {
                     anchors.centerIn: parent
                 }
 
-                MouseArea { 
+                MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onPressed: parent.color = "#d0d0d0"
                     onReleased: parent.color = "#e0e0e0"
-                    onClicked:sidebarRoot.logoutRequested()
+                    onClicked: sidebarRoot.logoutRequested()
                 }
             }
 
@@ -78,13 +99,22 @@ Rectangle {
                 border.color: "#ccc"
                 radius: 20
                 Layout.alignment: Qt.AlignVCenter
-                
+
+                Timer {
+                    id: searchDelayTimer
+                    interval: 400
+                    repeat: false
+                    onTriggered: ChatLayer.searchUsers(sidebarRoot.pendingSearchQuery)
+                }
+
                 TextInput {
+                    id: searchInput
                     anchors.fill: parent
                     anchors.leftMargin: 15
                     anchors.rightMargin: 15
                     verticalAlignment: Text.AlignVCenter
                     font.pixelSize: 14
+
                     Text {
                         text: "Поиск..."
                         color: "#999"
@@ -94,11 +124,13 @@ Rectangle {
 
                     onTextChanged: {
                         if (text.trim() === "") {
+                            searchDelayTimer.stop()
                             isSearching = false
                             ChatLayer.fetchChats()
                         } else {
+                            sidebarRoot.pendingSearchQuery = text
                             isSearching = true
-                            ChatLayer.searchUsers(text)
+                            searchDelayTimer.restart()
                         }
                     }
                 }
@@ -124,18 +156,25 @@ Rectangle {
             property var itemData: modelData
 
             MouseArea {
-                id: hoverArea
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    console.log("[Sidebar] open chat/user " + itemData.id)
-                    sidebarRoot.chatSelected(itemData.id, itemData.name ? itemData.name : "Unknown user")
-                    ChatLayer.fetchChatHistory(itemData.id)
+                    if (isSearching) {
+                        console.log("[Sidebar] open direct chat with user " + itemData.id)
+                        ChatLayer.openDirectChat(itemData.id, itemData.display_name ?? itemData.handle ?? "Unknown")
+                    } else {
+                        console.log("[Sidebar] open chat " + itemData.chat_id)
+                        sidebarRoot.chatSelected(
+                            String(itemData.chat_id),
+                            itemData.title ? itemData.title : "Unknown"
+                        )
+                        ChatLayer.fetchChatHistory(String(itemData.chat_id))
+                    }
                 }
             }
 
-            Row { 
+            Row {
                 anchors.fill: parent
                 anchors.margins: 10
                 spacing: 15
@@ -148,7 +187,9 @@ Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
 
                     Text {
-                        text: itemData.name ? itemData.name.charAt(0).toUpperCase() : "?"
+                        text: isSearching
+                            ? (itemData.display_name ? itemData.display_name.charAt(0).toUpperCase() : "?")
+                            : (itemData.title ? itemData.title.charAt(0).toUpperCase() : "?")
                         color: "white"
                         font.bold: true
                         font.pixelSize: parent.height * 0.5
@@ -158,13 +199,19 @@ Rectangle {
 
                 Column {
                     anchors.verticalCenter: parent.verticalCenter
+
                     Text {
-                        text: itemData.name ? itemData.name : "Unknow User"
+                        text: isSearching
+                            ? (itemData.display_name ?? itemData.handle ?? "Unknown User")
+                            : (itemData.title ?? "Unknown Chat")
                         font.bold: true
                         font.pixelSize: Math.max(12, Math.min(16, chatItem.height * 0.2))
                     }
-                    Text { 
-                        text: itemData.last_message ? itemData.last_message : (isSearching ? "Начать диалог!" : "")
+
+                    Text {
+                        text: isSearching
+                            ? "Начать диалог!"
+                            : (itemData.last_message ? itemData.last_message.text : (itemData.unread_count > 0 ? "Новое сообщение" : "Нет сообщений"))
                         color: "#777"
                         font.pixelSize: Math.max(10, Math.min(14, chatItem.height * 0.15))
                     }

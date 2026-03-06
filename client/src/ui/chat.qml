@@ -16,8 +16,8 @@ Rectangle {
             Layout.fillHeight: true
 
             onChatSelected: function(chatId, chatName) {
-                chatArea.acriveChatId = chatId
-                chatArea.acriveChatName = chatName
+                chatArea.activeChatId = chatId
+                chatArea.activeChatName = chatName
             }
 
             onLogoutRequested: {
