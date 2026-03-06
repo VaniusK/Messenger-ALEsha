@@ -1,10 +1,9 @@
 #include "StateManager.hpp"
-#include <qobject.h>
-#include <qstringliteral.h>
 
 StateManager::StateManager(QObject *parent) : QObject(parent) {
     m_token = "";
     m_currentUserHandle = "";
+    m_userId = 0;
 }
 
 QString StateManager::getToken() const {

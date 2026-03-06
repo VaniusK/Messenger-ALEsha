@@ -1,17 +1,16 @@
 #pragma once
 
-#include <qnetworkaccessmanager.h>
-#include <qtmetamacros.h>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QObject>
 #include <QString>
+#include "ConnectionManager.hpp"
 
 class AuthManager : public QObject {
     Q_OBJECT
 
 public:
-    explicit AuthManager(QObject *parent = nullptr);
+    explicit AuthManager(ConnectionManager *connection, QObject *parent = nullptr);
     Q_INVOKABLE void registerUser(
         const QString &handle,
         const QString &displayName,
@@ -22,10 +21,11 @@ public:
 signals:
     void registerSuccess();
     void registerFailed(const QString &errorMsg);
-
     void loginSuccess(const QString &token);
     void loginFailed(const QString &errorMsg);
+    void userIdFetched(int userId);
 
 private:
-    QNetworkAccessManager *m_networkManager;
+    ConnectionManager *m_connection;
+    void fetchUserId(const QString &handle);
 };
