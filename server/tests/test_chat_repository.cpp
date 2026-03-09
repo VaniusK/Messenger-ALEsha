@@ -371,3 +371,33 @@ TEST_F(ChatTestFixture, TestUpdateMemberRoleFail) {
     ));
     EXPECT_FALSE(result);
 }
+
+TEST_F(ChatTestFixture, TestUpdateInfo) {
+    /* When valid data is provided,
+    updateInfo should update chat info
+    and return true*/
+    Chat chat = sync_wait(repo_.createGroup(
+        "Чат жабоманов", dummy_user1_.getValueOfId(),
+        {dummy_user1_.getValueOfId(), dummy_user2_.getValueOfId()}
+    ));
+    auto result = sync_wait(repo_.updateInfo(
+        chat.getValueOfId(), std::nullopt, "new_avatar", "new_description"
+    ));
+    EXPECT_TRUE(result);
+    Chat new_chat = sync_wait(repo_.getById(chat.getValueOfId())).value();
+    EXPECT_EQ(new_chat.getValueOfAvatarPath(), "new_avatar");
+    EXPECT_EQ(new_chat.getValueOfDescription(), "new_description");
+}
+
+TEST_F(ChatTestFixture, TestUpdateInfoFail) {
+    /* When chat does not exist,
+    updateInfo should return false*/
+    Chat chat = sync_wait(repo_.createGroup(
+        "Чат жабоманов", dummy_user1_.getValueOfId(),
+        {dummy_user1_.getValueOfId(), dummy_user2_.getValueOfId()}
+    ));
+    auto result = sync_wait(repo_.updateInfo(
+        chat.getValueOfId() - 1, std::nullopt, "new_avatar", "new_description"
+    ));
+    EXPECT_FALSE(result);
+}
