@@ -249,6 +249,7 @@ TEST_F(ChatTestFixture, TestGetMembers) {
         {dummy_user1_.getValueOfId(), dummy_user2_.getValueOfId(),
          dummy_user3_.getValueOfId()}
     ));
+    EXPECT_EQ(chat.getValueOfType(), messenger::models::ChatType::Group);
     auto chat_members = sync_wait(repo_.getMembers(chat.getValueOfId()));
     EXPECT_EQ(chat_members.size(), 3);
     auto chat_member1 = *std::find_if(
@@ -277,5 +278,46 @@ TEST_F(ChatTestFixture, TestGetMembers) {
     );
     EXPECT_EQ(
         chat_member3.getValueOfRole(), messenger::models::ChatRole::Member
+    );
+}
+
+TEST_F(ChatTestFixture, TestAddMember) {
+    /* When valid data is provided,
+    addMember should add a member to the group
+    and return it*/
+    Chat chat = sync_wait(repo_.createGroup(
+        "Чат жабоманов", dummy_user1_.getValueOfId(),
+        {dummy_user1_.getValueOfId(), dummy_user2_.getValueOfId()}
+    ));
+    sync_wait(repo_.addMember(
+        chat.getValueOfId(), dummy_user3_.getValueOfId(),
+        messenger::models::ChatRole::Moderator
+    ));
+    auto members = sync_wait(repo_.getMembers(chat.getValueOfId()));
+    EXPECT_EQ(members.size(), 3);
+    auto chat_member3 = *std::find_if(
+        members.begin(), members.end(),
+        [this](const ChatMember &m) {
+            return m.getValueOfUserId() == dummy_user3_.getValueOfId();
+        }
+    );
+    EXPECT_EQ(
+        chat_member3.getValueOfRole(), messenger::models::ChatRole::Moderator
+    );
+}
+
+TEST_F(ChatTestFixture, TestAddMemberFail) {
+    /* When valid data is provided,
+    addMember should add a member to the group
+    and return it*/
+    Chat chat = sync_wait(repo_.getOrCreateDirect(
+        dummy_user1_.getValueOfId(), dummy_user2_.getValueOfId()
+    ));
+    EXPECT_THROW(
+        sync_wait(repo_.addMember(
+            chat.getValueOfId(), dummy_user3_.getValueOfId(),
+            messenger::models::ChatRole::Moderator
+        )),
+        std::logic_error
     );
 }
