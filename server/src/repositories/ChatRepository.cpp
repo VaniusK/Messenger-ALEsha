@@ -199,6 +199,7 @@ Task<ChatPreview> ChatRepository::buildChatPreview(
     preview.avatar_path = new_avatar_path;
     preview.last_message = last_message;
     preview.unread_count = unread_count;
+    preview.type = chat.getValueOfType();
 
     co_return preview;
 }

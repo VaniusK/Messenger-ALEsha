@@ -136,6 +136,7 @@ TEST_F(ChatTestFixture, TestGetByUserDirect) {
         message.getValueOfId()
     );
     EXPECT_EQ(chat1_preview.title, dummy_user2_.getValueOfDisplayName());
+    EXPECT_EQ(chat1_preview.type, chat1.getValueOfType());
 }
 
 TEST_F(ChatTestFixture, TestGetByUserEmptyDirect) {
