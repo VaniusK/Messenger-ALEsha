@@ -3,10 +3,9 @@
 int main() {
     setbuf(stdout, nullptr); // disabling stdout buffer for real-time logs in console(comment on realease and turn on file logs)
     
-    LOG_INFO << "Starting server on port 5555";
-
+    
     drogon::app().loadConfigFile("config.json");
-
+    
     drogon::orm::PostgresConfig dbConfig;
     dbConfig.host = std::getenv("POSTGRES_HOST") ?: "localhost";
     dbConfig.port = 5432;
@@ -16,9 +15,10 @@ int main() {
     dbConfig.connectionNumber = 50;
     dbConfig.name = "default";
     dbConfig.timeout = -1.0;
-    dbConfig.isFast = true;
+    dbConfig.isFast = false;
     drogon::app().addDbClient(dbConfig);
-    drogon::app().setThreadNum(0);
+    drogon::app().setThreadNum(64);
+    LOG_INFO << "Starting server on port 5555";
     drogon::app().run();
     return 0;
 }
