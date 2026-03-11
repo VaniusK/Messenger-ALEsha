@@ -13,11 +13,12 @@ int main() {
     dbConfig.databaseName = std::getenv("POSTGRES_DB") ?: "messenger_db";
     dbConfig.username = std::getenv("POSTGRES_USER") ?: "messenger";
     dbConfig.password = std::getenv("POSTGRES_PASSWORD") ?: "";
-    dbConfig.connectionNumber = 10;
+    dbConfig.connectionNumber = 50;
     dbConfig.name = "default";
     dbConfig.timeout = -1.0;
-    dbConfig.isFast = false;
+    dbConfig.isFast = true;
     drogon::app().addDbClient(dbConfig);
+    drogon::app().setThreadNum(0);
     drogon::app().run();
     return 0;
 }
