@@ -16,9 +16,7 @@ using UserRepo = messenger::repositories::UserRepository;
 using User = drogon_model::messenger_db::Users;
 
 Task<HttpResponsePtr> UserService::registerUser(
-    const std::shared_ptr<Json::Value> request_json,
-    const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
-        user_repo
+    const std::shared_ptr<Json::Value> request_json
 ) {
     Json::Value response_json;
     std::optional<User> user;
@@ -56,9 +54,7 @@ Task<HttpResponsePtr> UserService::registerUser(
 }
 
 Task<HttpResponsePtr> UserService::loginUser(
-    const std::shared_ptr<Json::Value> request_json,
-    const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
-        user_repo
+    const std::shared_ptr<Json::Value> request_json
 ) {
     Json::Value response_json;
     std::optional<User> user;
@@ -105,11 +101,7 @@ Task<HttpResponsePtr> UserService::loginUser(
     }
 }
 
-Task<HttpResponsePtr> UserService::getUserById(
-    int64_t user_id,
-    const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
-        user_repo
-) {
+Task<HttpResponsePtr> UserService::getUserById(int64_t user_id) {
     Json::Value response_json;
     std::optional<User> user;
     try {
@@ -129,11 +121,7 @@ Task<HttpResponsePtr> UserService::getUserById(
     }
 }
 
-Task<HttpResponsePtr> UserService::getUserByHandle(
-    std::string &&user_handle,
-    const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
-        user_repo
-) {
+Task<HttpResponsePtr> UserService::getUserByHandle(std::string &&user_handle) {
     Json::Value response_json;
     std::optional<User> user;
     try {
@@ -154,9 +142,7 @@ Task<HttpResponsePtr> UserService::getUserByHandle(
 }
 
 Task<HttpResponsePtr> UserService::searchUser(
-    const std::shared_ptr<Json::Value> request_json,
-    const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
-        user_repo
+    const std::shared_ptr<Json::Value> request_json
 ) {
     Json::Value response_json;
     std::vector<User> users;
