@@ -13,7 +13,7 @@ int main() {
     dbConfig.databaseName = std::getenv("POSTGRES_DB") ?: "messenger_db";
     dbConfig.username = std::getenv("POSTGRES_USER") ?: "messenger";
     dbConfig.password = std::getenv("POSTGRES_PASSWORD") ?: "";
-    dbConfig.connectionNumber = 1;
+    dbConfig.connectionNumber = 10;
     dbConfig.name = "default";
     dbConfig.timeout = -1.0;
     dbConfig.isFast = false;
