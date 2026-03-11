@@ -10,31 +10,27 @@ namespace api {
 namespace v1 {
 class UserService {
 public:
-    static Task<HttpResponsePtr> registerUser(
-        const std::shared_ptr<Json::Value> request_json,
+    Task<HttpResponsePtr> registerUser(
+        const std::shared_ptr<Json::Value> request_json
+    );
+    Task<HttpResponsePtr> loginUser(
+        const std::shared_ptr<Json::Value> request_json
+    );
+    Task<HttpResponsePtr> getUserById(int64_t user_id);
+    Task<HttpResponsePtr> getUserByHandle(std::string &&user_handle);
+    Task<HttpResponsePtr> searchUser(
+        const std::shared_ptr<Json::Value> request_json
+    );
+
+    void setUserRepo(
         const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
             user_repo
-    );
-    static Task<HttpResponsePtr> loginUser(
-        const std::shared_ptr<Json::Value> request_json,
-        const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
-            user_repo
-    );
-    static Task<HttpResponsePtr> getUserById(
-        int64_t user_id,
-        const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
-            user_repo
-    );
-    static Task<HttpResponsePtr> getUserByHandle(
-        std::string &&user_handle,
-        const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
-            user_repo
-    );
-    static Task<HttpResponsePtr> searchUser(
-        const std::shared_ptr<Json::Value> request_json,
-        const std::shared_ptr<messenger::repositories::UserRepositoryInterface>
-            user_repo
-    );
+    ) {
+        this->user_repo = user_repo;
+    }
+
+private:
+    std::shared_ptr<messenger::repositories::UserRepositoryInterface> user_repo;
 };
 }  // namespace v1
 }  // namespace api
