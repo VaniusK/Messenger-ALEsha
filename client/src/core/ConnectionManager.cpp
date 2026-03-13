@@ -4,10 +4,10 @@
 #include <QUrl>
 
 ConnectionManager::ConnectionManager(
-    StateManager *stateManager,
+    std::function<QString()> tokenProvider,
     QObject *parent
 )
-    : QObject(parent), m_stateManager(stateManager) {
+    : QObject(parent), m_tokenProvider(tokenProvider) {
     m_networkManager = new QNetworkAccessManager(this);
 }
 
@@ -19,18 +19,13 @@ QString ConnectionManager::wsUrl() const {
     return m_wsUrl;
 }
 
-StateManager *ConnectionManager::stateManager() const {
-    return m_stateManager;
-}
-
 QNetworkRequest ConnectionManager::createAuthRequest(const QString &endpoint
 ) const {
     QNetworkRequest request(QUrl(m_baseUrl + endpoint));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    if (m_stateManager && !m_stateManager->getToken().isEmpty()) {
-        request.setRawHeader(
-            "Authorization", "Bearer " + m_stateManager->getToken().toUtf8()
-        );
+    QString token = m_tokenProvider ? m_tokenProvider() : "";
+    if (!token.isEmpty()) {
+        request.setRawHeader("Authorization", "Bearer " + token.toUtf8());
     }
     return request;
 }

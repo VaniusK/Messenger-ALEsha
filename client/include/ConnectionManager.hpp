@@ -5,21 +5,20 @@
 #include <QNetworkRequest>
 #include <QObject>
 #include <QString>
-#include "StateManager.hpp"
+#include <functional>
 
 class ConnectionManager : public QObject {
     Q_OBJECT
 
 public:
     explicit ConnectionManager(
-        StateManager *stateManager,
+        std::function<QString()> tokenProvider,
         QObject *parent = nullptr
     );
 
     QString baseUrl() const;
     void setBaseUrl(const QString &url);
     QString wsUrl() const;
-    StateManager *stateManager() const;
 
     QNetworkRequest createAuthRequest(const QString &endpoint) const;
     QNetworkReply *get(const QString &endpoint);
@@ -28,7 +27,7 @@ public:
 
 private:
     QNetworkAccessManager *m_networkManager;
-    StateManager *m_stateManager;
+    std::function<QString()> m_tokenProvider;
     QString m_baseUrl = "http://127.0.0.1:5555/api/v1";
     QString m_wsUrl = "ws://127.0.0.1:5555/ws/chat";
 };
