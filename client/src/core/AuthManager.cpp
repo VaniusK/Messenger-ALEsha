@@ -3,8 +3,12 @@
 #include <QJsonObject>
 #include <QNetworkRequest>
 
-AuthManager::AuthManager(ConnectionManager *connection, QObject *parent)
-    : QObject(parent), m_connection(connection) {
+AuthManager::AuthManager(
+    ConnectionManager *connection,
+    StateManager *stateManager,
+    QObject *parent
+)
+    : QObject(parent), m_connection(connection), m_stateManager(stateManager) {
 }
 
 void AuthManager::registerUser(
@@ -57,7 +61,7 @@ void AuthManager::loginUser(const QString &handle, const QString &password) {
                 return;
             }
 
-            m_connection->stateManager()->setToken(token);
+            m_stateManager->setToken(token);
             emit loginSuccess(token);
             fetchUserId(handle);
         } else {
@@ -77,7 +81,7 @@ void AuthManager::fetchUserId(const QString &handle) {
             QJsonValue idValue = obj["id"];
             int userId = idValue.isString() ? idValue.toString().toInt()
                                             : idValue.toInt();
-            m_connection->stateManager()->setUserId(userId);
+            m_stateManager->setUserId(userId);
             emit userIdFetched(userId);
         }
     });

@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QString>
 #include "ConnectionManager.hpp"
+#include "StateManager.hpp"
 
 class AuthManager : public QObject {
     Q_OBJECT
@@ -12,6 +13,7 @@ class AuthManager : public QObject {
 public:
     explicit AuthManager(
         ConnectionManager *connection,
+        StateManager *StateManager,
         QObject *parent = nullptr
     );
     Q_INVOKABLE void registerUser(
@@ -30,5 +32,6 @@ signals:
 
 private:
     ConnectionManager *m_connection;
+    StateManager *m_stateManager;
     void fetchUserId(const QString &handle);
 };

@@ -4,8 +4,12 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
-ChatManager::ChatManager(ConnectionManager *connection, QObject *parent)
-    : QObject(parent), m_connection(connection) {
+ChatManager::ChatManager(
+    ConnectionManager *connection,
+    StateManager *stateManager,
+    QObject *parent
+)
+    : QObject(parent), m_connection(connection), m_stateManager(stateManager) {
     m_webSocket =
         new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this);
 
@@ -29,7 +33,7 @@ ChatManager::ChatManager(ConnectionManager *connection, QObject *parent)
 }
 
 void ChatManager::connectWebSocket() {
-    StateManager *sm = m_connection->stateManager();
+    StateManager *sm = m_stateManager;
     if (!sm || sm->getToken().isEmpty()) {
         return;
     }
@@ -61,7 +65,7 @@ void ChatManager::searchUsers(const QString &query) {
 }
 
 void ChatManager::fetchChats() {
-    StateManager *sm = m_connection->stateManager();
+    StateManager *sm = m_stateManager;
     if (!sm || sm->getUserId() <= 0) {
 #ifdef QT_DEBAG
         qDebug() << "[ChatManager] fetchChats skipped. Invalid state manager "
@@ -107,7 +111,7 @@ void ChatManager::fetchChatHistory(const QString &chatId) {
 #endif
             QJsonArray raw = doc.object()["messages"].toArray();
 
-            int currentUserId = m_connection->stateManager()->getUserId();
+            int currentUserId = m_stateManager->getUserId();
             QJsonArray messages;
             for (int i = raw.size() - 1; i >= 0; i--) {
                 QJsonObject msg = raw[i].toObject();

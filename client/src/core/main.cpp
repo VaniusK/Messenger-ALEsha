@@ -23,9 +23,11 @@ int main(int argc, char *argv[]) {
 #endif
 
     auto *stateManager = new StateManager(&app);
-    auto *connectionManager = new ConnectionManager(stateManager, &app);
-    auto *authManager = new AuthManager(connectionManager, &app);
-    auto *chatManager = new ChatManager(connectionManager, &app);
+    auto *connectionManager = new ConnectionManager(
+        [stateManager]() { return stateManager->getToken(); }, &app
+    );
+    auto *authManager = new AuthManager(connectionManager, stateManager, &app);
+    auto *chatManager = new ChatManager(connectionManager, stateManager, &app);
 
     QQmlApplicationEngine engine;
     qmlRegisterSingletonInstance("Messenger", 1, 0, "AppState", stateManager);

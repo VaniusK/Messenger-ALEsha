@@ -1,6 +1,5 @@
 #pragma once
 
-#include <qobject.h>
 #include <QAbstractSocket>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -8,6 +7,7 @@
 #include <QString>
 #include <QWebSocket>
 #include "ConnectionManager.hpp"
+#include "StateManager.hpp"
 
 class ChatManager : public QObject {
     Q_OBJECT
@@ -15,6 +15,7 @@ class ChatManager : public QObject {
 public:
     explicit ChatManager(
         ConnectionManager *connection,
+        StateManager *stateManager,
         QObject *parent = nullptr
     );
 
@@ -45,5 +46,6 @@ private slots:
 
 private:
     ConnectionManager *m_connection;
+    StateManager *m_stateManager;
     QWebSocket *m_webSocket;
 };
