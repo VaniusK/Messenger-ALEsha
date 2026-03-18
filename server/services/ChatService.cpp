@@ -76,6 +76,7 @@ Task<HttpResponsePtr> ChatService::getUserChats(
                 ? chat_preview.last_message.value().toJson()
                 : Json::Value();
         chat_json["unread_count"] = chat_preview.unread_count;
+        chat_json["type"] = chat_preview.type;
         jsonArray.append(chat_json);
     }
     response_json["chats"] = jsonArray;
