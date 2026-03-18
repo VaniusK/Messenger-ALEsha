@@ -9,10 +9,10 @@
 #include <optional>
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "mocks/MockChatRepository.hpp"
-#include "mocks/MockMessageRepository.hpp"
-#include "mocks/MockUserRepository.hpp"
 #include "services/UserService.hpp"
+#include "tests/mocks/MockChatRepository.hpp"
+#include "tests/mocks/MockMessageRepository.hpp"
+#include "tests/mocks/MockUserRepository.hpp"
 
 using User = drogon_model::messenger_db::Users;
 using Chat = drogon_model::messenger_db::Chats;
@@ -20,8 +20,7 @@ using ::testing::_;
 using ::testing::Invoke;
 using ::testing::Return;
 
-Json::Value makeJson(
-    std::vector<std::pair<std::string, std::string>> &&fields
+Json::Value makeJson(std::vector<std::pair<std::string, std::string>> &&fields
 ) {
     Json::Value j;
     for (auto &[field, value] : fields) {
@@ -73,8 +72,8 @@ TEST_P(ServiceRegisterUserTest, RegisterUserTest) {
         *mock_user_repo, getByHandle(param.request_json["handle"].asString())
     )
         .WillRepeatedly(Invoke(
-            [param](const std::string &handle)
-                -> drogon::Task<std::optional<User>> {
+            [param](const std::string &handle
+            ) -> drogon::Task<std::optional<User>> {
                 User fake_user;
                 fake_user.setId(123);
                 fake_user.setHandle(handle);
@@ -85,9 +84,8 @@ TEST_P(ServiceRegisterUserTest, RegisterUserTest) {
 
     EXPECT_CALL(*mock_user_repo, create(_, _, _))
         .WillRepeatedly(Invoke(
-            [param](
-                const std::string &, const std::string &, const std::string &
-            ) -> drogon::Task<bool> {
+            [param](const std::string &, const std::string &, const std::string &)
+                -> drogon::Task<bool> {
                 return createFakeTask<bool>(param.is_user_create_success);
             }
         ));
@@ -168,8 +166,8 @@ TEST_P(ServiceLoginUserTest, LoginUserTest) {
         *mock_user_repo, getByHandle(param.request_json["handle"].asString())
     )
         .WillRepeatedly(Invoke(
-            [param](const std::string &handle)
-                -> drogon::Task<std::optional<User>> {
+            [param](const std::string &handle
+            ) -> drogon::Task<std::optional<User>> {
                 if (param.is_user_exists) {
                     User fake_user;
                     fake_user.setId(123);
@@ -312,8 +310,8 @@ TEST_P(ServiceGetUserByHandleTest, GetUserByHandleTest) {
 
     EXPECT_CALL(*mock_user_repo, getByHandle(param.user_handle))
         .WillRepeatedly(Invoke(
-            [param](const std::string &user_handle)
-                -> drogon::Task<std::optional<User>> {
+            [param](const std::string &user_handle
+            ) -> drogon::Task<std::optional<User>> {
                 if (param.is_user_exists) {
                     User fake_user;
                     fake_user.setId(123);
@@ -412,10 +410,7 @@ Json::Value makeSearchJson(std::string &&query, int64_t limit) {
 INSTANTIATE_TEST_SUITE_P(
     SearchUserTest,
     ServiceSearchUserTest,
-    ::testing::Values(
-        SearchUserTestCase{
-            "Successful search user", makeSearchJson("PIDOR", 10),
-            drogon::k200OK
-        }
-    )
+    ::testing::Values(SearchUserTestCase{
+        "Successful search user", makeSearchJson("PIDOR", 10), drogon::k200OK
+    })
 );
