@@ -12,6 +12,7 @@ Rectangle {
     property bool isSearching: false
     property string pendingSearchQuery: ""
     property bool hasSearchFocus: searchInput.activeFocus
+    property string activeChatId: ""
 
     function clearSearch() {
         searchInput.text = ""
@@ -151,10 +152,10 @@ Rectangle {
                     clip: true
 
                     Text {
-                        text: "Поиск..."
+                        text: "Поиск"
                         color: "#8a96a3"
                         font.family: "Segoe UI"
-                        visible: !parent.text && !parent.activeFocus
+                        visible: !parent.text
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
@@ -202,8 +203,9 @@ Rectangle {
             width: chatList.width
             height: 70 
 
-            color: chatMouseArea.containsMouse ? "#202b36" : "#1c242f"
             property var itemData: modelData
+            property bool isActive: !sidebarRoot.isSearching && String(itemData.chat_id) === sidebarRoot.activeChatId
+            color: isActive ? "#2b5278" : (chatMouseArea.containsMouse ? "#202b36" : "#1c242f")
 
             MouseArea {
                 id: chatMouseArea

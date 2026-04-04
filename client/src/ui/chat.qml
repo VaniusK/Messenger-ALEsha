@@ -27,6 +27,7 @@ Rectangle {
             id: sidebar
             Layout.preferredWidth: Math.max(250, root.width * 0.34)
             Layout.fillHeight: true
+            activeChatId: chatArea.activeChatId
 
             onChatSelected: function(chatId, chatName) {
                 chatArea.activeChatId = chatId
