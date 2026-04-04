@@ -10,21 +10,59 @@ Rectangle {
     property string activeChatId: ""
     property string activeChatName: "Выберите чат"
     property var currentMessages: []
+    property bool isLoadingHistory: false
 
     Connections {
         target: ChatLayer
 
         function onChatsHistoryLoaded(messages) {
+            isLoadingHistory = false
             currentMessages = messages
             messageList.model = currentMessages
 
             if (messageList.count > 0) {
-                messageList.positionViewAtIndex(messageList.count - 1, ListView.End)
+                Qt.callLater(function() {
+                    messageList.positionViewAtEnd()
+
+                    if (messageList.contentHeight < messageList.height && currentMessages.length > 0) {
+                        var topmostMsgId = currentMessages[0]._id || currentMessages[0].id;
+                        topmostMsgId = parseInt(topmostMsgId);
+
+                        if (!isNaN(topmostMsgId) && topmostMsgId > 0) {
+                            isLoadingHistory = true;
+                            ChatLayer.fetchChatHistory(activeChatId, topmostMsgId);
+                        }
+                    }
+                })
             }
         }
 
-        function onMessageSentSuccess() {
+        function onChatsHistoryPrepended(messages) {
+            isLoadingHistory = false
+            if (messages.length === 0) return
+
+            var oldMessages = currentMessages.slice()
+            currentMessages = messages.concat(oldMessages)
+            messageList.model = currentMessages
+
+            Qt.callLater(function() {
+                messageList.positionViewAtIndex(messages.length, ListView.Beginning)
+            })
+        }
+
+        function onMessageSentSuccess(msg) {
             messageInput.text = ""
+            if (!msg) return
+
+            var newMessages = currentMessages.slice()
+            newMessages.push(msg)
+            currentMessages = newMessages
+            
+            messageList.model = currentMessages
+            
+            Qt.callLater(function() {
+                messageList.positionViewAtEnd()
+            })
         }
 
         function onIncomingWebSocketMessage(data) {
@@ -32,14 +70,25 @@ Rectangle {
                 var msg = data.data.message
                 if (String(msg.chat_id) === String(activeChatId)) {
                     msg.is_me = (msg.sender_id === AppState.userId)
+                    
                     var newMessages = currentMessages.slice()
                     newMessages.push(msg)
                     currentMessages = newMessages
                     
                     messageList.model = currentMessages
-                    messageList.positionViewAtIndex(messageList.count - 1, ListView.End)
+                    
+                    Qt.callLater(function() {
+                        messageList.positionViewAtEnd()
+                    })
                 }
             }
+        }
+
+        function onChatError(msg) {
+            isLoadingHistory = false
+            placeholderText.text = "Error: " + msg
+            placeholderText.color = "red"
+            placeholderText.parent.visible = true
         }
     }
 
@@ -154,6 +203,24 @@ Rectangle {
             spacing: 8
             topMargin: 15
             bottomMargin: 15
+
+            onContentYChanged: {
+                if (contentY <= 0 && currentMessages.length > 0) {
+                    if (isLoadingHistory) return;
+                    
+                    var topmostMsgId = currentMessages[0]._id || currentMessages[0].id;
+                    var parsedId = parseInt(topmostMsgId);
+
+                    activeChatName = "Req: " + topmostMsgId + " (parsed: " + parsedId + ")";
+                    
+                    if (!isNaN(parsedId) && parsedId > 0) {
+                        isLoadingHistory = true;
+                        ChatLayer.fetchChatHistory(activeChatId, parsedId);
+                    } else {
+                        activeChatName = "ERROR: ID is NaN!";
+                    }
+                }
+            }
             
             delegate: Item {
                 id: msgDelegateItem
