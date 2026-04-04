@@ -3,7 +3,7 @@
 StateManager::StateManager(QObject *parent) : QObject(parent) {
     m_token = "";
     m_currentUserHandle = "";
-    m_userId = 0;
+    m_userId = -1;
 }
 
 QString StateManager::getToken() const {

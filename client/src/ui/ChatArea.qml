@@ -9,22 +9,80 @@ Rectangle {
     property bool isChatActive: activeChatId !== ""
     property string activeChatId: ""
     property string activeChatName: "Выберите чат"
-    property var currentMessages: []
+    property bool isLoadingHistory: false
+    property bool hasMoreHistory: true
+
+    ListModel {
+        id: chatModel
+    }
+
+    onActiveChatIdChanged: {
+        hasMoreHistory = true
+        isLoadingHistory = false
+    }
 
     Connections {
         target: ChatLayer
 
         function onChatsHistoryLoaded(messages) {
-            currentMessages = messages
-            messageList.model = currentMessages
+            isLoadingHistory = true
+            chatModel.clear()
+            for (var i = 0; i < messages.length; i++) {
+                chatModel.append(messages[i])
+            }
 
-            if (messageList.count > 0) {
-                messageList.positionViewAtIndex(messageList.count - 1, ListView.End)
+            if (messages.length < 50) {
+                hasMoreHistory = false;
+            }
+
+            if (chatModel.count > 0) {
+                Qt.callLater(function() {
+                    messageList.positionViewAtEnd()
+
+                    if (messageList.contentHeight < messageList.height && chatModel.count > 0) {
+                        var topmostMsgId = chatModel.get(0)._id || chatModel.get(0).id;
+                        topmostMsgId = parseInt(topmostMsgId);
+
+                        if (!isNaN(topmostMsgId) && topmostMsgId > 0 && hasMoreHistory) {
+                            ChatLayer.fetchChatHistory(activeChatId, topmostMsgId);
+                        } else {
+                            isLoadingHistory = false;
+                        }
+                    } else {
+                        isLoadingHistory = false;
+                    }
+                })
+            } else {
+                isLoadingHistory = false;
             }
         }
 
-        function onMessageSentSuccess() {
+        function onChatsHistoryPrepended(messages) {
+            if (messages.length === 0) {
+                hasMoreHistory = false
+                isLoadingHistory = false
+                return
+            }
+
+            for (var i = messages.length - 1; i >= 0; i--) {
+                chatModel.insert(0, messages[i])
+            }
+
+            Qt.callLater(function() {
+                messageList.positionViewAtIndex(messages.length, ListView.Beginning)
+                isLoadingHistory = false
+            })
+        }
+
+        function onMessageSentSuccess(msg) {
             messageInput.text = ""
+            if (!msg) return
+
+            chatModel.append(msg)
+            
+            Qt.callLater(function() {
+                messageList.positionViewAtEnd()
+            })
         }
 
         function onIncomingWebSocketMessage(data) {
@@ -32,14 +90,21 @@ Rectangle {
                 var msg = data.data.message
                 if (String(msg.chat_id) === String(activeChatId)) {
                     msg.is_me = (msg.sender_id === AppState.userId)
-                    var newMessages = currentMessages.slice()
-                    newMessages.push(msg)
-                    currentMessages = newMessages
                     
-                    messageList.model = currentMessages
-                    messageList.positionViewAtIndex(messageList.count - 1, ListView.End)
+                    chatModel.append(msg)
+                    
+                    Qt.callLater(function() {
+                        messageList.positionViewAtEnd()
+                    })
                 }
             }
+        }
+
+        function onChatError(msg) {
+            isLoadingHistory = false
+            placeholderText.text = "Error: " + msg
+            placeholderText.color = "red"
+            placeholderText.parent.visible = true
         }
     }
 
@@ -150,18 +215,31 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            model: currentMessages
+            model: chatModel
             spacing: 8
             topMargin: 15
             bottomMargin: 15
+
+            onContentYChanged: {
+                if (contentY <= 0 && chatModel.count > 0) {
+                    if (isLoadingHistory || !hasMoreHistory || activeChatId === "") return;
+                    
+                    var topmostMsgId = chatModel.get(0)._id || chatModel.get(0).id;
+                    var parsedId = parseInt(topmostMsgId);
+
+                    if (!isNaN(parsedId) && parsedId > 0) {
+                        isLoadingHistory = true;
+                        ChatLayer.fetchChatHistory(activeChatId, parsedId);
+                    }
+                }
+            }
             
             delegate: Item {
                 id: msgDelegateItem
                 width: messageList.width
                 height: messageBubble.height + 6
                 
-                property var msgData: modelData
-                property bool isMe: msgData.is_me
+                property bool isMe: model.is_me !== undefined ? model.is_me : false
                 
                 Rectangle {
                     id: messageBubble
@@ -212,7 +290,7 @@ Rectangle {
 
                     TextEdit {
                         id: messageText
-                        text: msgData.text
+                        text: model.text !== undefined ? model.text : ""
                         anchors.fill: parent
                         anchors.margins: 8
                         anchors.leftMargin: 12
@@ -238,7 +316,7 @@ Rectangle {
                     Text {
                         id: timeText
                         text: {
-                            var t = msgData.sent_at;
+                            var t = model.sent_at;
                             if (!t) return "12:00"; 
 
                             if (typeof t === "string" && t.indexOf(" ") !== -1) {
