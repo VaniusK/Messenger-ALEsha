@@ -19,6 +19,9 @@ Rectangle {
     onActiveChatIdChanged: {
         hasMoreHistory = true
         isLoadingHistory = false
+        if (typeof messageInput !== "undefined") {
+            messageInput.text = ""
+        }
     }
 
     Connections {
@@ -401,11 +404,11 @@ Rectangle {
                     }
 
                     Text {
-                        text: isChatActive ? "Написать сообщение..." : ""
+                        text: isChatActive ? "Сообщение..." : ""
                         color: "#8a96a3"
                         font.family: "Segoe UI"
                         font.pixelSize: 16
-                        visible: !messageInput.text && !messageInput.activeFocus
+                        visible: !messageInput.text
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
                     }

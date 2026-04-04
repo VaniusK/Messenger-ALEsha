@@ -1,7 +1,4 @@
 #include "ChatManager.hpp"
-#include <qglobal.h>
-#include <qjsondocument.h>
-#include <qjsonobject.h>
 #include <QDebug>
 #include <QJsonDocument>
 #include <QNetworkReply>

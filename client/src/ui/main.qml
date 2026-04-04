@@ -12,7 +12,7 @@ Window {
     Loader {
         id: pageLoader
         anchors.fill: parent
-        source: "sign_up.qml"
+        source: "sign_in.qml"
     }
 
     function push(page) {
