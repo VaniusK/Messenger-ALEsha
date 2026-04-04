@@ -9,44 +9,68 @@ Rectangle {
     property bool isChatActive: activeChatId !== ""
     property string activeChatId: ""
     property string activeChatName: "Выберите чат"
-    property var currentMessages: []
     property bool isLoadingHistory: false
+    property bool hasMoreHistory: true
+
+    ListModel {
+        id: chatModel
+    }
+
+    onActiveChatIdChanged: {
+        hasMoreHistory = true
+        isLoadingHistory = false
+    }
 
     Connections {
         target: ChatLayer
 
         function onChatsHistoryLoaded(messages) {
-            isLoadingHistory = false
-            currentMessages = messages
-            messageList.model = currentMessages
+            isLoadingHistory = true
+            chatModel.clear()
+            for (var i = 0; i < messages.length; i++) {
+                chatModel.append(messages[i])
+            }
 
-            if (messageList.count > 0) {
+            if (messages.length < 50) {
+                hasMoreHistory = false;
+            }
+
+            if (chatModel.count > 0) {
                 Qt.callLater(function() {
                     messageList.positionViewAtEnd()
 
-                    if (messageList.contentHeight < messageList.height && currentMessages.length > 0) {
-                        var topmostMsgId = currentMessages[0]._id || currentMessages[0].id;
+                    if (messageList.contentHeight < messageList.height && chatModel.count > 0) {
+                        var topmostMsgId = chatModel.get(0)._id || chatModel.get(0).id;
                         topmostMsgId = parseInt(topmostMsgId);
 
-                        if (!isNaN(topmostMsgId) && topmostMsgId > 0) {
-                            isLoadingHistory = true;
+                        if (!isNaN(topmostMsgId) && topmostMsgId > 0 && hasMoreHistory) {
                             ChatLayer.fetchChatHistory(activeChatId, topmostMsgId);
+                        } else {
+                            isLoadingHistory = false;
                         }
+                    } else {
+                        isLoadingHistory = false;
                     }
                 })
+            } else {
+                isLoadingHistory = false;
             }
         }
 
         function onChatsHistoryPrepended(messages) {
-            isLoadingHistory = false
-            if (messages.length === 0) return
+            if (messages.length === 0) {
+                hasMoreHistory = false
+                isLoadingHistory = false
+                return
+            }
 
-            var oldMessages = currentMessages.slice()
-            currentMessages = messages.concat(oldMessages)
-            messageList.model = currentMessages
+            for (var i = messages.length - 1; i >= 0; i--) {
+                chatModel.insert(0, messages[i])
+            }
 
             Qt.callLater(function() {
                 messageList.positionViewAtIndex(messages.length, ListView.Beginning)
+                isLoadingHistory = false
             })
         }
 
@@ -54,11 +78,7 @@ Rectangle {
             messageInput.text = ""
             if (!msg) return
 
-            var newMessages = currentMessages.slice()
-            newMessages.push(msg)
-            currentMessages = newMessages
-            
-            messageList.model = currentMessages
+            chatModel.append(msg)
             
             Qt.callLater(function() {
                 messageList.positionViewAtEnd()
@@ -71,11 +91,7 @@ Rectangle {
                 if (String(msg.chat_id) === String(activeChatId)) {
                     msg.is_me = (msg.sender_id === AppState.userId)
                     
-                    var newMessages = currentMessages.slice()
-                    newMessages.push(msg)
-                    currentMessages = newMessages
-                    
-                    messageList.model = currentMessages
+                    chatModel.append(msg)
                     
                     Qt.callLater(function() {
                         messageList.positionViewAtEnd()
@@ -199,25 +215,21 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            model: currentMessages
+            model: chatModel
             spacing: 8
             topMargin: 15
             bottomMargin: 15
 
             onContentYChanged: {
-                if (contentY <= 0 && currentMessages.length > 0) {
-                    if (isLoadingHistory) return;
+                if (contentY <= 0 && chatModel.count > 0) {
+                    if (isLoadingHistory || !hasMoreHistory || activeChatId === "") return;
                     
-                    var topmostMsgId = currentMessages[0]._id || currentMessages[0].id;
+                    var topmostMsgId = chatModel.get(0)._id || chatModel.get(0).id;
                     var parsedId = parseInt(topmostMsgId);
 
-                    activeChatName = "Req: " + topmostMsgId + " (parsed: " + parsedId + ")";
-                    
                     if (!isNaN(parsedId) && parsedId > 0) {
                         isLoadingHistory = true;
                         ChatLayer.fetchChatHistory(activeChatId, parsedId);
-                    } else {
-                        activeChatName = "ERROR: ID is NaN!";
                     }
                 }
             }
@@ -227,8 +239,7 @@ Rectangle {
                 width: messageList.width
                 height: messageBubble.height + 6
                 
-                property var msgData: modelData
-                property bool isMe: msgData.is_me
+                property bool isMe: model.is_me !== undefined ? model.is_me : false
                 
                 Rectangle {
                     id: messageBubble
@@ -279,7 +290,7 @@ Rectangle {
 
                     TextEdit {
                         id: messageText
-                        text: msgData.text
+                        text: model.text !== undefined ? model.text : ""
                         anchors.fill: parent
                         anchors.margins: 8
                         anchors.leftMargin: 12
@@ -305,7 +316,7 @@ Rectangle {
                     Text {
                         id: timeText
                         text: {
-                            var t = msgData.sent_at;
+                            var t = model.sent_at;
                             if (!t) return "12:00"; 
 
                             if (typeof t === "string" && t.indexOf(" ") !== -1) {

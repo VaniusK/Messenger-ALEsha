@@ -84,7 +84,7 @@ Task<std::vector<Message>> MessageRepository::getByChat(
             Criteria(Message::Cols::_chat_id, CompareOperator::EQ, chat_id);
         if (before_id.has_value()) {
             crit = crit &&
-                   Criteria(Message::Cols::_id, CompareOperator::LE, before_id);
+                   Criteria(Message::Cols::_id, CompareOperator::LT, before_id);
         }
         std::vector<Message> messages = co_await mapper.findBy(crit
 
