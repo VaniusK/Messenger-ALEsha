@@ -112,7 +112,7 @@ Task<HttpResponsePtr> ChatService::getChatMessages(
             : std::nullopt;
     int64_t limit = request_json->isMember("limit")
                         ? (*request_json)["limit"].asInt64()
-                        : 20;
+                        : 50;
     if (limit > 100) {
         limit = 100;
     }
