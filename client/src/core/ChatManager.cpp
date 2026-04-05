@@ -46,7 +46,7 @@ void ChatManager::connectWebSocket() {
 void ChatManager::searchUsers(const QString &query) {
     QJsonObject json;
     json["query"] = query;
-    json["limit"] = 20;
+    json["limit"] = 50;
 
     QNetworkReply *reply = m_connection->getWithBody(
         "/users/search", QJsonDocument(json).toJson()
@@ -98,10 +98,19 @@ void ChatManager::fetchChats() {
     });
 }
 
-void ChatManager::fetchChatHistory(const QString &chatId) {
-    QNetworkReply *reply = m_connection->get("/chats/" + chatId + "/messages");
+void ChatManager::fetchChatHistory(const QString &chatId, int beforeId) {
+    QJsonObject reqJson;
+    reqJson["limit"] = 50;
 
-    connect(reply, &QNetworkReply::finished, [this, reply]() {
+    if (beforeId > 0) {
+        reqJson["before_id"] = beforeId;
+    }
+
+    QNetworkReply *reply = m_connection->getWithBody(
+        "/chats/" + chatId + "/messages", QJsonDocument(reqJson).toJson()
+    );
+
+    connect(reply, &QNetworkReply::finished, [this, reply, beforeId]() {
         reply->deleteLater();
         if (reply->error() == QNetworkReply::NoError) {
             QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
@@ -125,7 +134,12 @@ void ChatManager::fetchChatHistory(const QString &chatId) {
                 msg["is_me"] = (senderIdStr == currentUserIdStr);
                 messages.append(msg);
             }
-            emit chatsHistoryLoaded(messages);
+
+            if (beforeId > 0) {
+                emit chatsHistoryPrepended(messages);
+            } else {
+                emit chatsHistoryLoaded(messages);
+            }
         } else {
             emit chatError("Fetch history failed: " + reply->errorString());
         }
@@ -143,8 +157,11 @@ void ChatManager::sendMessage(const QString &chatId, const QString &text) {
     connect(reply, &QNetworkReply::finished, [this, reply, chatId]() {
         reply->deleteLater();
         if (reply->error() == QNetworkReply::NoError) {
-            emit messageSentSuccess();
-            fetchChatHistory(chatId);
+            QJsonObject obj =
+                QJsonDocument::fromJson(reply->readAll()).object();
+            QJsonObject msg = obj["message"].toObject();
+            msg["is_me"] = true;
+            emit messageSentSuccess(msg);
         } else {
             emit chatError("Send message failed: " + reply->errorString());
         }

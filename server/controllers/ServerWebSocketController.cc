@@ -16,31 +16,7 @@ void ServerWebSocketController::handleNewMessage(const WebSocketConnectionPtr& w
 
 void ServerWebSocketController::handleNewConnection(const HttpRequestPtr &req, const WebSocketConnectionPtr& wsConnPtr)
 {
-    std::string header = req->getHeader("Authorization");
-    if (header.empty() || header.substr(0, 7) != "Bearer "){
-        LOG_WARN << "No token provided or invalid token format";
-        wsConnPtr->send("Failed to connect. No token provided or invalid token format");
-        wsConnPtr->forceClose();
-        return;
-    }
-    std::string token = header.substr(7);
-    int64_t user_id;
-    try{
-        auto decoded = jwt::decode(token);
-        auto verifier = jwt::verify()
-            .allow_algorithm(jwt::algorithm::hs256(std::getenv("JWT_KEY")))
-            .with_issuer("alesha_messenger");
-        verifier.verify(decoded);
-        std::string user_id_str = decoded.get_payload_claim("user_id").as_string();
-        user_id = std::stoll(user_id_str);
-        LOG_INFO << "Successfully got user_id " << user_id << " from token";
-    }
-    catch(const std::exception &e){
-        LOG_WARN << "Accession failed: " << e.what();
-        wsConnPtr->send("Failed during token decoding");
-        wsConnPtr->forceClose();
-        return;
-    }
+    int64_t user_id = req->getAttributes()->get<int64_t>("user_id");
     wsConnPtr->setContext(std::make_shared<int64_t>(user_id));
     {
         std::unique_lock<std::shared_mutex> lock(clients_mutex_);

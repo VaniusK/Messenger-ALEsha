@@ -8,7 +8,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 Network WebSockets)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 Network WebSockets Test)
 
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_definitions(QT_NO_DEBUG_OUTPUT QT_NO_INFO_OUTPUT QT_NO_WARNING_OUTPUT)
@@ -54,9 +54,30 @@ if(BUILD_TESTS)
 
     enable_testing()
     
-    add_executable(client_tests tests/test_placeholder.cpp)
+    add_executable(client_tests 
+    src/core/StateManager.cpp
+    include/StateManager.hpp
+    src/core/AuthManager.cpp
+    include/AuthManager.hpp
+    src/core/ConnectionManager.cpp
+    include/ConnectionManager.hpp
+    src/core/ChatManager.cpp
+    include/ChatManager.hpp
+    tests/test_state_manager.cpp
+    tests/mocks/FakeNetworkReply.hpp
+    tests/test_auth_manager.cpp
+    tests/test_chat_manager.cpp
+    )
+
     target_include_directories(client_tests PRIVATE include)
-    target_link_libraries(client_tests GTest::gtest_main)
+    target_link_libraries(client_tests PRIVATE
+    GTest::gtest_main
+    GTest::gmock
+    Qt6::Core
+    Qt6::Network
+    Qt6::WebSockets
+    Qt6::Test
+    )
     
     include(GoogleTest)
     gtest_discover_tests(client_tests)

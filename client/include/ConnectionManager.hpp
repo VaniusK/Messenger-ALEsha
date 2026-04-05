@@ -21,9 +21,11 @@ public:
     QString wsUrl() const;
 
     QNetworkRequest createAuthRequest(const QString &endpoint) const;
-    QNetworkReply *get(const QString &endpoint);
-    QNetworkReply *post(const QString &endpoint, const QByteArray &body);
-    QNetworkReply *getWithBody(const QString &endpoint, const QByteArray &body);
+    virtual QNetworkReply *get(const QString &endpoint);
+    virtual QNetworkReply *
+    post(const QString &endpoint, const QByteArray &body);
+    virtual QNetworkReply *
+    getWithBody(const QString &endpoint, const QByteArray &body);
 
 private:
     QNetworkAccessManager *m_networkManager;

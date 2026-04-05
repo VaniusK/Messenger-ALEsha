@@ -9,22 +9,83 @@ Rectangle {
     property bool isChatActive: activeChatId !== ""
     property string activeChatId: ""
     property string activeChatName: "Выберите чат"
-    property var currentMessages: []
+    property bool isLoadingHistory: false
+    property bool hasMoreHistory: true
+
+    ListModel {
+        id: chatModel
+    }
+
+    onActiveChatIdChanged: {
+        hasMoreHistory = true
+        isLoadingHistory = false
+        if (typeof messageInput !== "undefined") {
+            messageInput.text = ""
+        }
+    }
 
     Connections {
         target: ChatLayer
 
         function onChatsHistoryLoaded(messages) {
-            currentMessages = messages
-            messageList.model = currentMessages
+            isLoadingHistory = true
+            chatModel.clear()
+            for (var i = 0; i < messages.length; i++) {
+                chatModel.append(messages[i])
+            }
 
-            if (messageList.count > 0) {
-                messageList.positionViewAtIndex(messageList.count - 1, ListView.End)
+            if (messages.length < 50) {
+                hasMoreHistory = false;
+            }
+
+            if (chatModel.count > 0) {
+                Qt.callLater(function() {
+                    messageList.positionViewAtEnd()
+
+                    if (messageList.contentHeight < messageList.height && chatModel.count > 0) {
+                        var topmostMsgId = chatModel.get(0)._id || chatModel.get(0).id;
+                        topmostMsgId = parseInt(topmostMsgId);
+
+                        if (!isNaN(topmostMsgId) && topmostMsgId > 0 && hasMoreHistory) {
+                            ChatLayer.fetchChatHistory(activeChatId, topmostMsgId);
+                        } else {
+                            isLoadingHistory = false;
+                        }
+                    } else {
+                        isLoadingHistory = false;
+                    }
+                })
+            } else {
+                isLoadingHistory = false;
             }
         }
 
-        function onMessageSentSuccess() {
+        function onChatsHistoryPrepended(messages) {
+            if (messages.length === 0) {
+                hasMoreHistory = false
+                isLoadingHistory = false
+                return
+            }
+
+            for (var i = messages.length - 1; i >= 0; i--) {
+                chatModel.insert(0, messages[i])
+            }
+
+            Qt.callLater(function() {
+                messageList.positionViewAtIndex(messages.length, ListView.Beginning)
+                isLoadingHistory = false
+            })
+        }
+
+        function onMessageSentSuccess(msg) {
             messageInput.text = ""
+            if (!msg) return
+
+            chatModel.append(msg)
+            
+            Qt.callLater(function() {
+                messageList.positionViewAtEnd()
+            })
         }
 
         function onIncomingWebSocketMessage(data) {
@@ -32,14 +93,21 @@ Rectangle {
                 var msg = data.data.message
                 if (String(msg.chat_id) === String(activeChatId)) {
                     msg.is_me = (msg.sender_id === AppState.userId)
-                    var newMessages = currentMessages.slice()
-                    newMessages.push(msg)
-                    currentMessages = newMessages
                     
-                    messageList.model = currentMessages
-                    messageList.positionViewAtIndex(messageList.count - 1, ListView.End)
+                    chatModel.append(msg)
+                    
+                    Qt.callLater(function() {
+                        messageList.positionViewAtEnd()
+                    })
                 }
             }
+        }
+
+        function onChatError(msg) {
+            isLoadingHistory = false
+            placeholderText.text = "Error: " + msg
+            placeholderText.color = "red"
+            placeholderText.parent.visible = true
         }
     }
 
@@ -117,6 +185,7 @@ Rectangle {
                         font.family: "Segoe UI"
                         font.pixelSize: 20
                         anchors.centerIn: parent
+                        textFormat: Text.PlainText
                     }
                 }
 
@@ -130,6 +199,7 @@ Rectangle {
                         color: "white"
                         font.family: "Segoe UI"
                         font.pixelSize: 16
+                        textFormat: Text.PlainText
                     }
 
                     Text {
@@ -148,18 +218,31 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            model: currentMessages
+            model: chatModel
             spacing: 8
             topMargin: 15
             bottomMargin: 15
+
+            onContentYChanged: {
+                if (contentY <= 0 && chatModel.count > 0) {
+                    if (isLoadingHistory || !hasMoreHistory || activeChatId === "") return;
+                    
+                    var topmostMsgId = chatModel.get(0)._id || chatModel.get(0).id;
+                    var parsedId = parseInt(topmostMsgId);
+
+                    if (!isNaN(parsedId) && parsedId > 0) {
+                        isLoadingHistory = true;
+                        ChatLayer.fetchChatHistory(activeChatId, parsedId);
+                    }
+                }
+            }
             
             delegate: Item {
                 id: msgDelegateItem
                 width: messageList.width
                 height: messageBubble.height + 6
                 
-                property var msgData: modelData
-                property bool isMe: msgData.is_me
+                property bool isMe: model.is_me !== undefined ? model.is_me : false
                 
                 Rectangle {
                     id: messageBubble
@@ -208,31 +291,45 @@ Rectangle {
                         }
                     }
 
-                    Text {
+                    TextEdit {
                         id: messageText
-                        text: msgData.text
+                        text: model.text !== undefined ? model.text : ""
                         anchors.fill: parent
                         anchors.margins: 8
                         anchors.leftMargin: 12
                         anchors.rightMargin: 12
                         anchors.bottomMargin: 12
-                        wrapMode: Text.Wrap
+
+                        wrapMode: TextEdit.Wrap
+                        textFormat: TextEdit.PlainText
+                        verticalAlignment: TextEdit.AlignVCenter
+                        horizontalAlignment: TextEdit.AlignLeft
+
                         color: "white"
                         font.pixelSize: 15
                         font.family: "Segoe UI"
-                        verticalAlignment: Text.AlignVCenter
-                        horizontalAlignment: Text.AlignLeft
+
+                        readOnly: true
+                        selectByMouse: true
+                        cursorVisible: false
+                        selectedTextColor: "white"
+                        selectionColor: "#4a90d9"
                     }
 
                     Text {
                         id: timeText
                         text: {
-                            var t = msgData.sent_at;
+                            var t = model.sent_at;
                             if (!t) return "12:00"; 
 
                             if (typeof t === "string" && t.indexOf(" ") !== -1) {
                                 t = t.replace(" ", "T");
                             }
+
+                            if (t.indexOf("Z") === -1) {
+                                t += "Z";
+                            }
+
                             var d = new Date(t);
                             if (isNaN(d.getTime())) return "??:??";
 
@@ -255,60 +352,84 @@ Rectangle {
 
         Rectangle {
             Layout.fillWidth: true
-            height: 60
+            Layout.preferredHeight: Math.min(250, Math.max(60, messageInput.contentHeight + 20))
             color: "#1c242f"
+
+            Rectangle {
+                width: parent.width
+                height: 1
+                color: "#151b23"
+                anchors.top: parent.top
+            }
 
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 10
-                spacing: 10
+                anchors.leftMargin: 20
+                anchors.rightMargin: 15
+                anchors.topMargin: 10
+                anchors.bottomMargin: 10
+                spacing: 15
 
-                Rectangle {
+                Item {
                     Layout.fillWidth: true
-                    height: 40
-                    radius: 20
-                    color: "#242f3d"
-                    
-                    TextInput {
-                        id: messageInput
-                        anchors.fill: parent
-                        anchors.leftMargin: 20
-                        anchors.rightMargin: 20
-                        verticalAlignment: Text.AlignVCenter
-                        color: "white"
-                        font.pixelSize: 15
-                        font.family: "Segoe UI"
+                    Layout.fillHeight: true
+
+                    Flickable {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        height: Math.min(parent.height, messageInput.contentHeight)
+                        contentWidth: width
+                        contentHeight: messageInput.contentHeight
                         clip: true
-                        
-                        Text {
-                            text: isChatActive ? "Сообщение..." : ""
-                            color: "#8a96a3"
+
+                        TextEdit {
+                            id: messageInput
+                            width: parent.width
+                            height: contentHeight
+                            color: "white"
+                            font.pixelSize: 16
                             font.family: "Segoe UI"
-                            font.pixelSize: 15
-                            visible: !parent.text && !parent.activeFocus
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        
-                        Keys.onReturnPressed: {
-                            if (messageInput.text.trim() != "" && isChatActive) {
-                                ChatLayer.sendMessage(activeChatId, messageInput.text.trim())
+                            wrapMode: TextEdit.Wrap
+
+                            Keys.onPressed: function(event) {
+                                if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ShiftModifier)) {
+                                    event.accepted = true;
+                                    if (text.trim() !== "" && isChatActive) {
+                                        ChatLayer.sendMessage(activeChatId, text.trim());
+                                    }
+                                }
                             }
                         }
+                    }
+
+                    Text {
+                        text: isChatActive ? "Сообщение..." : ""
+                        color: "#8a96a3"
+                        font.family: "Segoe UI"
+                        font.pixelSize: 16
+                        visible: !messageInput.text
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
                     }
                 }
 
                 Rectangle {
+                    Layout.alignment: Qt.AlignBottom
                     width: 40
                     height: 40
-                    radius: 20
-                    color: "#5eb5f7"
-                    
+                    color: "transparent"
+
                     Text {
                         text: "➤"
-                        color: "white"
-                        font.pixelSize: 18
+                        color: messageInput.text.trim() === "" ? "#546576" : "#5eb5f7"
+                        font.pixelSize: 24
                         anchors.centerIn: parent
                         anchors.horizontalCenterOffset: 1
+
+                        Behavior on color {
+                            ColorAnimation { duration: 150 }
+                        }
                     }
 
                     MouseArea {

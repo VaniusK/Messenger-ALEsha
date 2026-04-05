@@ -12,6 +12,7 @@ Rectangle {
     property bool isSearching: false
     property string pendingSearchQuery: ""
     property bool hasSearchFocus: searchInput.activeFocus
+    property string activeChatId: ""
 
     function clearSearch() {
         searchInput.text = ""
@@ -29,10 +30,15 @@ Rectangle {
                 chats.sort(function(a, b) {
                     if (a.type === "saved") return -1;
                     if (b.type === "saved") return 1;
-                    var timeA = a.last_message ? new Date((a.last_message.sent_at || "").replace(" ", "T") || 0).getTime() : 0;
-                    var timeB = b.last_message ? new Date((b.last_message.sent_at || "").replace(" ", "T") || 0).getTime() : 0;
+
+                    var strA = a.last_message ? a.last_message.sent_at || "" : "";
+                    var timeA = strA ? new Date(strA.replace(" ", "T") + (strA.indexOf("Z") === -1 ? "Z" : "")).getTime() : 0;
                     if (isNaN(timeA)) timeA = 0;
+
+                    var strB = b.last_message ? b.last_message.sent_at || "" : "";
+                    var timeB = strB ? new Date(strB.replace(" ", "T") + (strB.indexOf("Z") === -1 ? "Z" : "")).getTime() : 0;
                     if (isNaN(timeB)) timeB = 0;
+                    
                     return timeB - timeA;
                 })
                 chatDataList = chats
@@ -146,10 +152,10 @@ Rectangle {
                     clip: true
 
                     Text {
-                        text: "Поиск..."
+                        text: "Поиск"
                         color: "#8a96a3"
                         font.family: "Segoe UI"
-                        visible: !parent.text && !parent.activeFocus
+                        visible: !parent.text
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
@@ -197,8 +203,10 @@ Rectangle {
             width: chatList.width
             height: 70 
 
-            color: chatMouseArea.containsMouse ? "#202b36" : "#1c242f"
             property var itemData: modelData
+            property bool isActive: !sidebarRoot.isSearching && String(itemData.chat_id) === sidebarRoot.activeChatId
+            property bool isSelf: isSearching && String(itemData.id) === String(AppState.userId)
+            color: isActive ? "#2b5278" : (chatMouseArea.containsMouse ? "#202b36" : "#1c242f")
 
             MouseArea {
                 id: chatMouseArea
@@ -238,7 +246,7 @@ Rectangle {
 
                     Canvas {
                         id: bookmarkCanvas
-                        visible: !isSearching && itemData.type === "saved"
+                        visible: (!isSearching && itemData.type === "saved") || isSelf
                         width: 22
                         height: 28
                         anchors.centerIn: parent
@@ -263,7 +271,7 @@ Rectangle {
                     }
 
                     Text {
-                        visible: isSearching || itemData.type !== "saved"
+                        visible: !isSelf && (isSearching || itemData.type !== "saved")
                         text: isSearching
                             ? (itemData.display_name ? itemData.display_name.charAt(0).toUpperCase() : "?")
                             : (itemData.title ? itemData.title.charAt(0).toUpperCase() : "?")
@@ -272,6 +280,7 @@ Rectangle {
                         font.family: "Segoe UI"
                         font.pixelSize: 22
                         anchors.centerIn: parent
+                        textFormat: Text.PlainText
                     }
                 }
 
@@ -284,7 +293,9 @@ Rectangle {
                         height: 20
 
                         Text {
-                            text: isSearching
+                            text: isSelf
+                            ? "Избранное"
+                            : isSearching
                                 ? (itemData.display_name ?? itemData.handle ?? "")
                                 : (itemData.type === "saved" ? "Избранное" : (itemData.title ?? ""))
                             font.bold: true
@@ -296,6 +307,7 @@ Rectangle {
                             anchors.right: timeText.left
                             anchors.rightMargin: 10
                             anchors.top: parent.top
+                            textFormat: Text.PlainText
                         }
 
                         Text {
@@ -306,6 +318,9 @@ Rectangle {
                                 var t = itemData.last_message.sent_at;
                                 if (typeof t === "string" && t.indexOf(" ") !== -1) {
                                     t = t.replace(" ", "T");
+                                }
+                                if (t.indexOf("Z") === -1) {
+                                    t += "Z";
                                 }
                                 var d = new Date(t);
                                 if (isNaN(d.getTime())) return "";
@@ -330,6 +345,9 @@ Rectangle {
                         font.family: "Segoe UI"
                         elide: Text.ElideRight
                         width: parent.width
+
+                        maximumLineCount: 1
+                        textFormat: Text.PlainText
                     }
                 }
             }
