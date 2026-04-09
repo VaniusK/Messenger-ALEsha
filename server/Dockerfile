@@ -6,8 +6,17 @@ FROM drogonframework/drogon AS builder
 WORKDIR /app
 COPY . .
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    curl zip unzip tar
 
-RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON
+RUN git clone https://github.com/microsoft/vcpkg.git /opt/vcpkg
+RUN /opt/vcpkg/bootstrap-vcpkg.sh
+RUN /opt/vcpkg/vcpkg install minio-cpp
+
+
+RUN cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON \
+    -DCMAKE_TOOLCHAIN_FILE=/opt/vcpkg/scripts/buildsystems/vcpkg.cmake
 RUN cmake --build build --parallel
 
 # Runtime stage
@@ -20,6 +29,7 @@ RUN apt-get update && \
     libmariadb3 \
     libsqlite3-0 \
     libpq5 \
+    libcurl4 \
     libhiredis0.14 \
     uuid-dev \
     openssl libssl3 \
