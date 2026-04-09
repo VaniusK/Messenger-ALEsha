@@ -50,9 +50,7 @@ jobs:
             imagemagick \
             libfuse2 \
             libasound2-dev \
-            libpulse-dev \
-            libgstreamer1.0-dev \
-            libgstreamer-plugins-base1.0-dev
+            libpulse-dev
 
       - name: Install Qt via aqtinstall
         if: steps.cache-qt.outputs.cache-hit != 'true'
