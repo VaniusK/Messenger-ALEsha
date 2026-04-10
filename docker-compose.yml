@@ -14,10 +14,28 @@ services:
     env_file:
       - .env
     ports:
-      - "5555:5555"
+      - "8080:8080"
     depends_on:
       - db
   
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./server/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./server/certbot/www:/var/www/certbot:ro
+      - ./server/certbot/conf:/etc/letsencrypt:ro
+    depends_on:
+      - server
+  
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./server/certbot/www:/var/www/certbot:rw
+      - ./server/certbot/conf:/etc/letsencrypt:rw
+    
   client-build:
     build: ./client
     volumes:
