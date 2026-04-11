@@ -30,6 +30,6 @@ public:
 private:
     QNetworkAccessManager *m_networkManager;
     std::function<QString()> m_tokenProvider;
-    QString m_baseUrl = "http://158.160.219.207:5555/api/v1";
-    QString m_wsUrl = "ws://158.160.219.207:5555/ws/chat";
+    QString m_baseUrl = "https://api.alyosha.su/v1";
+    QString m_wsUrl = "wss://api.alyosha.su/ws/chat";
 };

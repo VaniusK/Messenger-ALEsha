@@ -48,7 +48,10 @@ jobs:
             libssl-dev \
             libglib2.0-dev \
             imagemagick \
-            libfuse2
+            libfuse2 \
+            gstreamer1.0-plugins-good \
+            ca-certificates \
+            openssl
 
       - name: Install Qt via aqtinstall
         if: steps.cache-qt.outputs.cache-hit != 'true'
