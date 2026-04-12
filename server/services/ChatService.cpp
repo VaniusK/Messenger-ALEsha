@@ -79,6 +79,19 @@ Task<HttpResponsePtr> ChatService::getUserChats(
             chat_preview.last_message.has_value()
                 ? chat_preview.last_message.value().toJson()
                 : Json::Value();
+        if (chat_json["last_message"].isMember("chat_id")) {
+            chat_json["last_message"]["attachments"] =
+                Json::Value(Json::arrayValue);
+            std::vector<Attachment> attachments =
+                co_await attachment_repo->getByMessage(
+                    chat_preview.last_message.value().getValueOfId()
+                );
+            for (const auto &attachment : attachments) {
+                chat_json["last_message"]["attachments"].append(
+                    attachment.toJson()
+                );
+            }
+        }
         chat_json["unread_count"] = chat_preview.unread_count;
         chat_json["type"] = chat_preview.type;
         jsonArray.append(chat_json);
