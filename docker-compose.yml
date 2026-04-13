@@ -29,12 +29,16 @@ services:
       - ./server/certbot/conf:/etc/letsencrypt:ro
     depends_on:
       - server
+    profiles:
+      - prod
   
   certbot:
     image: certbot/certbot
     volumes:
       - ./server/certbot/www:/var/www/certbot:rw
       - ./server/certbot/conf:/etc/letsencrypt:rw
+    profiles:
+      - prod
     
   client-build:
     build: ./client
@@ -70,3 +74,4 @@ services:
 
 volumes:
   postgres_data:
+  minio_data:

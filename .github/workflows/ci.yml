@@ -325,7 +325,7 @@ jobs:
           docker compose logs
       
       - name: Run server tests
-        run: docker compose run test-server
+        run: docker compose --profile test up --build
       
       - name: Cleanup
         run: docker compose down -v
