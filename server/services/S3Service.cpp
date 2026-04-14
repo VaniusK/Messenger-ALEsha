@@ -16,6 +16,7 @@ minio::s3::BaseUrl S3Service::formBaseUrl(
 ) {
     minio::s3::BaseUrl base_url(url, should_use_https);
     base_url.region = region;
+    return base_url;
 }
 
 S3Service::S3Service(
