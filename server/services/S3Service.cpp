@@ -1,5 +1,7 @@
 #include "services/S3Service.hpp"
 #include <drogon/utils/Utilities.h>
+#include <miniocpp/args.h>
+#include <miniocpp/response.h>
 #include <trantor/utils/Date.h>
 #include <trantor/utils/Logger.h>
 #include <algorithm>
@@ -7,18 +9,40 @@
 
 using namespace api::v1;
 
+minio::s3::BaseUrl S3Service::formBaseUrl(
+    const std::string &url,
+    bool should_use_https,
+    const std::string &region
+) {
+    minio::s3::BaseUrl base_url(url, should_use_https);
+    base_url.region = region;
+}
+
 S3Service::S3Service(
     std::string access_key,
     std::string secret_key,
     std::string url,
-    std::string private_bucket_name
+    std::string private_bucket_name,
+    bool should_use_https
 )
-    : base_url_(url, true),
+    : base_url_(formBaseUrl(url, should_use_https, "ru-central1")),
       provider_(access_key, secret_key),
       s3_client_(base_url_, &provider_),
       private_bucket_name_(private_bucket_name) {
-    base_url_.https = true;
-    base_url_.region = "ru-central1";
+    minio::s3::BucketExistsArgs exists_args;
+    exists_args.bucket = private_bucket_name_;
+    minio::s3::BucketExistsResponse resp = s3_client_.BucketExists(exists_args);
+    if (resp) {
+        throw std::runtime_error("S3: Failed to check if bucket exists");
+    }
+    if (!resp.exist) {
+        minio::s3::MakeBucketArgs make_args;
+        make_args.bucket = private_bucket_name_;
+        minio::s3::MakeBucketResponse resp = s3_client_.MakeBucket(make_args);
+        if (resp) {
+            throw std::runtime_error("S3: Failed to create bucket");
+        }
+    }
 }
 
 std::string S3Service::getExtension(const std::string &filename) {
