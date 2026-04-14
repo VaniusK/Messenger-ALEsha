@@ -278,4 +278,101 @@ TEST_F(ControllerTestFixture, E2ETest) {
     auto direct_chat_dima_petr_messages_with_before_id =
         (*result21->getJsonObject())["messages"];
     ASSERT_EQ(direct_chat_dima_petr_messages_with_before_id.size(), 1);
+
+    // Петя получает ссылку для загрузки картинки
+    auto result22 = sync_wait(sendReqTask(form_request(
+        Get, "/v1/chats/attachments/presigned-link",
+        makeJson(
+            {{"chat_id", direct_chat_dima_petr_id},
+             {"original_filename", "eggplant.png"},
+             {"upload_as_file", false}}
+        ),
+        petr_token
+    )));
+
+    ASSERT_EQ(result22->getStatusCode(), k200OK);
+
+    std::string eggplant_upload_url =
+        (*result22->getJsonObject())["upload_url"].asString();
+
+    // Обрезаем ссылку, потому что drogon сам подставляет адрес сервера
+    ASSERT_EQ(eggplant_upload_url.substr(0, 17), "http://minio:9000");
+    eggplant_upload_url =
+        eggplant_upload_url.substr(17, eggplant_upload_url.size() - 17);
+    auto eggplant_attachment_key =
+        (*result22->getJsonObject())["attachment_key"].asString();
+    auto eggplant_content_type =
+        (*result22->getJsonObject())["content_type"].asString();
+
+    // Петя загружает картинку
+    auto result23 = sync_wait(sendMinioReqTask(form_file_upload_request(
+        eggplant_upload_url, "tests/test_data/eggplant.png"
+    )));
+
+    ASSERT_EQ(result23->getStatusCode(), k200OK);
+
+    // Петя отправляет Диме сообщение
+    auto result24 = sync_wait(sendReqTask(form_request(
+        Post,
+        "/v1/chats/" + std::to_string(direct_chat_dima_petr_id) + "/messages",
+        makeJson({{"text", "Смотри на баклажан"}}), petr_token
+    )));
+
+    ASSERT_EQ(result24->getStatusCode(), k201Created);
+
+    int64_t eggplant_message_id =
+        (*result24->getJsonObject())["message"]["id"].asInt64();
+
+    /*
+    (*request_json)["message_id"].asInt64(),
+        (*request_json)["file_name"].asString(),
+        (*request_json)["file_type"].asString(),
+        (*request_json)["file_size_bytes"].asInt64(),
+        (*request_json)["s3_object_key"].asString()
+    */
+
+    // Петя прикрепляет к сообщению картинку
+    auto result25 = sync_wait(sendReqTask(form_request(
+        Post, "/v1/chats/attachments",
+        makeJson({
+            {"chat_id", direct_chat_dima_petr_id},
+            {"message_id", eggplant_message_id},
+            {"file_name", "eggplant.png"},
+            {"file_type", eggplant_content_type},
+            {"file_size_bytes", 1337},
+            {"s3_object_key", eggplant_attachment_key},
+        }),
+        petr_token
+    )));
+
+    ASSERT_EQ(result25->getStatusCode(), k201Created);
+
+    // Дима получает сообщения чата - у последнего должна быть картинка
+    auto result26 = sync_wait(sendReqTask(form_request(
+        Get,
+        "/v1/chats/" + std::to_string(direct_chat_dima_petr_id) + "/messages",
+        makeJson({{"limit", 1}}), dima_token
+    )));
+
+    ASSERT_EQ(result26->getStatusCode(), k200OK);
+    ASSERT_EQ(
+        (*result26->getJsonObject())["messages"][0]["attachments"].size(), 1
+    );
+
+    std::string eggplant_download_url = (*result26->getJsonObject()
+    )["messages"][0]["attachments"][0]["download_url"]
+                                            .asString();
+
+    ASSERT_EQ(eggplant_download_url.substr(0, 17), "http://minio:9000");
+    eggplant_download_url =
+        eggplant_download_url.substr(17, eggplant_download_url.size() - 17);
+
+    // Проверяем, что ссылка рабочая(проверка на идентичность файла/подобное уже
+    // будут борьбой с клиентом дрогона. Предполагаем, что херобрин не может
+    // прилететь и заменить баклажан по ссылке на арбуз.)
+    auto result27 = sync_wait(
+        sendMinioReqTask(form_file_download_request(Get, eggplant_download_url))
+    );
+
+    ASSERT_EQ(result27->getStatusCode(), k200OK);
 }
