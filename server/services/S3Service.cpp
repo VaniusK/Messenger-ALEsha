@@ -11,7 +11,8 @@ using namespace api::v1;
 
 namespace {
 template <typename TResponse>
-std::string formatS3Failure(const std::string &operation, const TResponse &resp) {
+std::string
+formatS3Failure(const std::string &operation, const TResponse &resp) {
     return "S3: Failed to " + operation + ": " + resp.Error().String();
 }
 }  // namespace
@@ -41,7 +42,8 @@ S3Service::S3Service(
     exists_args.bucket = private_bucket_name_;
     minio::s3::BucketExistsResponse resp = s3_client_.BucketExists(exists_args);
     if (!resp) {
-        throw std::runtime_error(formatS3Failure("check if bucket exists", resp));
+        throw std::runtime_error(formatS3Failure("check if bucket exists", resp)
+        );
     }
     if (!resp.exist) {
         minio::s3::MakeBucketArgs make_args;
