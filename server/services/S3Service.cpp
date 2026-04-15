@@ -5,7 +5,9 @@
 #include <trantor/utils/Date.h>
 #include <trantor/utils/Logger.h>
 #include <algorithm>
+#include <chrono>
 #include <string>
+#include <thread>
 
 using namespace api::v1;
 
@@ -38,21 +40,48 @@ S3Service::S3Service(
       provider_(access_key, secret_key),
       s3_client_(base_url_, &provider_),
       private_bucket_name_(private_bucket_name) {
-    minio::s3::BucketExistsArgs exists_args;
-    exists_args.bucket = private_bucket_name_;
-    minio::s3::BucketExistsResponse resp = s3_client_.BucketExists(exists_args);
-    if (!resp) {
-        throw std::runtime_error(formatS3Failure("check if bucket exists", resp)
-        );
-    }
-    if (!resp.exist) {
-        minio::s3::MakeBucketArgs make_args;
-        make_args.bucket = private_bucket_name_;
-        minio::s3::MakeBucketResponse resp = s3_client_.MakeBucket(make_args);
-        if (!resp) {
-            throw std::runtime_error(formatS3Failure("create bucket", resp));
+    LOG_INFO << "S3Service: connecting to " << url
+             << " (https=" << should_use_https << ")"
+             << ", bucket=" << private_bucket_name_;
+
+    constexpr int kMaxRetries = 10;
+    constexpr int kRetryDelaySec = 2;
+
+    for (int attempt = 1; attempt <= kMaxRetries; ++attempt) {
+        minio::s3::BucketExistsArgs exists_args;
+        exists_args.bucket = private_bucket_name_;
+        minio::s3::BucketExistsResponse resp =
+            s3_client_.BucketExists(exists_args);
+
+        if (resp) {
+            if (!resp.exist) {
+                minio::s3::MakeBucketArgs make_args;
+                make_args.bucket = private_bucket_name_;
+                minio::s3::MakeBucketResponse make_resp =
+                    s3_client_.MakeBucket(make_args);
+                if (!make_resp) {
+                    throw std::runtime_error(
+                        formatS3Failure("create bucket", make_resp)
+                    );
+                }
+            }
+            LOG_INFO << "S3Service: bucket '" << private_bucket_name_
+                     << "' is ready (attempt " << attempt << ")";
+            return;
+        }
+
+        LOG_WARN << "S3Service: BucketExists failed (attempt " << attempt << "/"
+                 << kMaxRetries << "): " << resp.Error().String();
+
+        if (attempt < kMaxRetries) {
+            std::this_thread::sleep_for(std::chrono::seconds(kRetryDelaySec));
         }
     }
+
+    throw std::runtime_error(
+        "S3Service: failed to connect after " + std::to_string(kMaxRetries) +
+        " attempts"
+    );
 }
 
 std::string S3Service::getExtension(const std::string &filename) {
