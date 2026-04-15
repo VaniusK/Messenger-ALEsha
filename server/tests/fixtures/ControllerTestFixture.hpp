@@ -1,9 +1,11 @@
 #pragma once
+#include <arpa/inet.h>
 #include <drogon/HttpRequest.h>
 #include <drogon/HttpTypes.h>
 #include <drogon/drogon.h>
 #include <drogon/utils/coroutine.h>
 #include <gtest/gtest.h>
+#include <netdb.h>
 #include <fstream>
 
 class ControllerTestFixture : public ::testing::Test {
@@ -106,8 +108,18 @@ public:
         client_ = drogon::HttpClient::newHttpClient(
             "http://127.0.0.1:5555", drogon::app().getLoop()
         );
+
+        std::string minio_url = "http://minio:9000";
+        struct hostent *he = gethostbyname("minio");
+        if (he != nullptr && he->h_addr_list[0] != nullptr) {
+            struct in_addr **addr_list = (struct in_addr **)he->h_addr_list;
+            std::string minio_ip = inet_ntoa(*addr_list[0]);
+            minio_url = "http://" + minio_ip + ":9000";
+            std::cout << "Resolved minio to " << minio_ip << std::endl;
+        }
+
         minio_client_ = drogon::HttpClient::newHttpClient(
-            "http://minio:9000", drogon::app().getLoop()
+            minio_url, drogon::app().getLoop()
         );
     }
 };
