@@ -14,10 +14,16 @@ public:
         QObject *parent = nullptr
     );
 
-    Q_INVOKABLE void
-    uploadFile(const QString &localFilePath, const QString &fileType);
+    Q_INVOKABLE void uploadFile(
+        const QString &chatId,
+        const QString &localFilePath,
+        bool uploadAsFile,
+        const QString &caption,
+        const QString &messageType
+    );
 
     Q_INVOKABLE void openFileDialog(const QString &type);
+    Q_INVOKABLE void downloadFile(const QString &url, const QString &fileName);
 
 signals:
     void fileDialogOpened();
@@ -29,12 +35,7 @@ signals:
         const QString &fileName
     );
     void uploadProgress(int percent);
-    void uploadFinished(
-        const QString &fileUrl,
-        const QString &fileType,
-        qint64 fileSize,
-        const QString &fileName
-    );
+    void uploadFinished();
     void uploadFailed(const QString &errorMessage);
 
 private:
