@@ -27,7 +27,8 @@ public:
          std::string,
          std::optional<int64_t>,
          std::optional<int64_t>,
-         std::string),
+         std::string,
+         std::shared_ptr<drogon::orm::Transaction>),
         (override)
     );
     MOCK_METHOD(
@@ -36,6 +37,16 @@ public:
         (int64_t, std::optional<int64_t>, int64_t),
         (override)
     );
-    MOCK_METHOD(drogon::Task<bool>, edit, (int64_t, std::string), (override));
-    MOCK_METHOD(drogon::Task<bool>, remove, (int64_t), (override));
+    MOCK_METHOD(
+        drogon::Task<bool>,
+        edit,
+        (int64_t, std::string, std::shared_ptr<drogon::orm::Transaction>),
+        (override)
+    );
+    MOCK_METHOD(
+        drogon::Task<bool>,
+        remove,
+        (int64_t, std::shared_ptr<drogon::orm::Transaction>),
+        (override)
+    );
 };
