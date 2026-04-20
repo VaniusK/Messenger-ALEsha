@@ -115,6 +115,7 @@ Task<bool> MessageRepository::edit(
         trantor::Date now = trantor::Date::date();
         message.setEditedAt(now);
         co_await mapper.update(message);
+        co_await transaction_ptr->execSqlCoro("COMMIT;");
         co_return true;
     } catch (const UnexpectedRows &e) {
         co_return false;
