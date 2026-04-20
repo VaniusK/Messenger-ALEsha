@@ -107,20 +107,3 @@ Task<HttpResponsePtr> ChatController::getAttachmentLinks(
     }
     co_return co_await chat_service.getAttachmentLink(request_json);
 }
-
-Task<HttpResponsePtr> ChatController::createAttachment(
-    const HttpRequestPtr req
-) {
-    LOG_INFO << "Entered ChatController -> createAttachment";
-    auto request_json = req->getJsonObject();
-    (*request_json)["user_id"] = req->getAttributes()->get<int64_t>("user_id");
-    Json::Value response_json;
-    if (utils::find_missed_fields(
-            response_json, request_json,
-            {"chat_id", "message_id", "file_name", "file_type",
-             "file_size_bytes", "s3_object_key"}
-        )) {
-        RETURN_RESPONSE_CODE_400(response_json)
-    }
-    co_return co_await chat_service.createAttachment(request_json);
-}

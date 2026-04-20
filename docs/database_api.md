@@ -90,7 +90,7 @@
 |---|---|---|
 | `id` | `int64` | ID сообщения |
 | `chat_id` | `int64` | ID чата |
-| `type` | `string` | Тип сообщения(text, voice, round, sticker) |
+| `type` | `string` | Тип сообщения(text, media, voice, round, sticker) |
 | `sender_id` | `int64?` | ID отправителя (null если удален) |
 | `reply_to_message_id` | `int64?` | Ответ на сообщение |
 | `forwarded_from_user_id` | `int64?` | ID автора оригинала (при пересылке) |
