@@ -103,9 +103,11 @@ Task<bool> MessageRepository::edit(
     std::string text,
     std::shared_ptr<drogon::orm::Transaction> transaction_ptr
 ) {
+    bool own_transaction = false;
     if (!transaction_ptr) {
         transaction_ptr =
             co_await drogon::app().getDbClient()->newTransactionCoro();
+        own_transaction = true;
     }
 
     auto mapper = getMapper(transaction_ptr);
@@ -115,7 +117,9 @@ Task<bool> MessageRepository::edit(
         trantor::Date now = trantor::Date::date();
         message.setEditedAt(now);
         co_await mapper.update(message);
-        co_await transaction_ptr->execSqlCoro("COMMIT;");
+        if (own_transaction) {
+            co_await transaction_ptr->execSqlCoro("COMMIT;");
+        }
         co_return true;
     } catch (const UnexpectedRows &e) {
         co_return false;

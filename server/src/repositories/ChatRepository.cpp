@@ -319,9 +319,11 @@ Task<Chat> ChatRepository::createGroup(
     std::vector<int64_t> member_ids,
     std::shared_ptr<drogon::orm::Transaction> transaction_ptr
 ) {
+    bool own_transaction = false;
     if (!transaction_ptr) {
         transaction_ptr =
             co_await drogon::app().getDbClient()->newTransactionCoro();
+        own_transaction = true;
     }
 
     auto mapper = getMapper(transaction_ptr);
@@ -338,7 +340,9 @@ Task<Chat> ChatRepository::createGroup(
             chat_member.setUserId(id);
             chat_member.setRole(messenger::models::ChatRole::Member);
             chat_member.setChatType(messenger::models::ChatType::Group);
-            co_await transaction_ptr->execSqlCoro("COMMIT;");
+            if (own_transaction) {
+                co_await transaction_ptr->execSqlCoro("COMMIT;");
+            }
             co_await chat_member_mapper.insert(chat_member);
         }
         ChatMember creator = co_await chat_member_mapper.findOne(Criteria(
@@ -372,9 +376,11 @@ Task<ChatMember> ChatRepository::addMember(
     std::string role,
     std::shared_ptr<drogon::orm::Transaction> transaction_ptr
 ) {
+    bool own_transaction = false;
     if (!transaction_ptr) {
         transaction_ptr =
             co_await drogon::app().getDbClient()->newTransactionCoro();
+        own_transaction = true;
     }
 
     auto chat_member_mapper = getChatMemberMapper(transaction_ptr);
@@ -399,7 +405,9 @@ Task<ChatMember> ChatRepository::addMember(
         chat_member.setRole(role);
         chat_member.setChatType(messenger::models::ChatType::Group);
         chat_member = co_await chat_member_mapper.insert(chat_member);
-        co_await transaction_ptr->execSqlCoro("COMMIT;");
+        if (own_transaction) {
+            co_await transaction_ptr->execSqlCoro("COMMIT;");
+        }
         co_return chat_member;
     } catch (const DrogonDbException &e) {
         throw std::runtime_error("Database error");
@@ -448,9 +456,11 @@ Task<bool> ChatRepository::updateInfo(
     std::optional<std::string> description,
     std::shared_ptr<drogon::orm::Transaction> transaction_ptr
 ) {
+    bool own_transaction = false;
     if (!transaction_ptr) {
         transaction_ptr =
             co_await drogon::app().getDbClient()->newTransactionCoro();
+        own_transaction = true;
     }
     auto mapper = getMapper(transaction_ptr);
     try {
@@ -465,7 +475,9 @@ Task<bool> ChatRepository::updateInfo(
             chat.setDescription(description.value());
         }
         co_await mapper.update(chat);
-        co_await transaction_ptr->execSqlCoro("COMMIT;");
+        if (own_transaction) {
+            co_await transaction_ptr->execSqlCoro("COMMIT;");
+        }
         co_return true;
     } catch (const UnexpectedRows &e) {
         co_return false;
@@ -478,9 +490,11 @@ Task<Chat> ChatRepository::createSaved(
     int64_t user_id,
     std::shared_ptr<drogon::orm::Transaction> transaction_ptr
 ) {
+    bool own_transaction = false;
     if (!transaction_ptr) {
         transaction_ptr =
             co_await drogon::app().getDbClient()->newTransactionCoro();
+        own_transaction = true;
     }
     auto mapper = getMapper(transaction_ptr);
     auto chat_member_mapper = getChatMemberMapper(transaction_ptr);
@@ -495,7 +509,9 @@ Task<Chat> ChatRepository::createSaved(
         chat_member.setRole(messenger::models::ChatRole::Owner);
         chat_member.setChatType(messenger::models::ChatType::Saved);
         co_await chat_member_mapper.insert(chat_member);
-        co_await transaction_ptr->execSqlCoro("COMMIT;");
+        if (own_transaction) {
+            co_await transaction_ptr->execSqlCoro("COMMIT;");
+        }
         co_return chat;
     } catch (const DrogonDbException &e) {
         throw std::runtime_error("Database error");
