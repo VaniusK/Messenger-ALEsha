@@ -55,6 +55,7 @@ qt_add_qml_module(client
         assets/icons/pause.svg
         assets/icons/play_blue.svg
         assets/icons/pause_blue.svg
+        assets/icons/volume.svg
 )
 target_include_directories(client PRIVATE include)
 target_link_libraries(client PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::Network Qt6::WebSockets Qt6::Widgets Qt6::Multimedia)

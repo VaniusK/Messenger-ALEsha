@@ -53,7 +53,9 @@ protected:
     void SetUp() override {
         mock_user_repo = std::make_shared<MockUserRepository>();
 
-        auto chat_msg_repo = std::make_unique<MockMessageRepository>();
+        auto chat_msg_repo = std::make_unique<MockMessageRepository>(
+            std::make_unique<messenger::repositories::AttachmentRepository>()
+        );
         auto chat_usr_repo = std::make_unique<MockUserRepository>();
 
         mock_chat_repo = std::make_shared<MockChatRepository>(
@@ -90,11 +92,14 @@ TEST_P(ServiceRegisterUserTest, RegisterUserTest) {
             }
         ));
     if (param.is_user_create_success) {
-        EXPECT_CALL(*mock_chat_repo, createSaved(_))
-            .WillRepeatedly(Invoke([param](int64_t) -> drogon::Task<Chat> {
-                Chat fake_chat;
-                return createFakeTask<Chat>(fake_chat);
-            }));
+        EXPECT_CALL(*mock_chat_repo, createSaved(_, _))
+            .WillRepeatedly(Invoke(
+                [param](int64_t, std::shared_ptr<drogon::orm::Transaction>)
+                    -> drogon::Task<Chat> {
+                    Chat fake_chat;
+                    return createFakeTask<Chat>(fake_chat);
+                }
+            ));
     }
 
     auto request_json = std::make_shared<Json::Value>(param.request_json);

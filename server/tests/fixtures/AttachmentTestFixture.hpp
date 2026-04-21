@@ -18,10 +18,13 @@ using Attachment = messenger::repositories::Attachment;
 class AttachmentTestFixture : public DbTestFixture {
 private:
     ChatRepository chat_repo_ = ChatRepository(
-        std::make_unique<MessageRepository>(),
+        std::make_unique<MessageRepository>(
+            std::make_unique<AttachmentRepository>()
+        ),
         std::make_unique<UserRepository>()
     );
-    MessageRepository message_repo_ = MessageRepository();
+    MessageRepository message_repo_ =
+        MessageRepository(std::make_unique<AttachmentRepository>());
 
 protected:
     AttachmentRepository repo_ = AttachmentRepository();
@@ -41,17 +44,29 @@ protected:
         Chat dummy_chat =
             drogon::sync_wait(chat_repo_.createSaved(dummy_user.getValueOfId())
             );
-        dummy_message_1 = drogon::sync_wait(message_repo_.send(
-            dummy_chat.getValueOfId(), dummy_user.getValueOfId(), "hey",
-            std::nullopt, std::nullopt, messenger::models::MessageType::Text
-        ));
-        dummy_message_2 = drogon::sync_wait(message_repo_.send(
-            dummy_chat.getValueOfId(), dummy_user.getValueOfId(), "hey",
-            std::nullopt, std::nullopt, messenger::models::MessageType::Text
-        ));
-        dummy_message_3 = drogon::sync_wait(message_repo_.send(
-            dummy_chat.getValueOfId(), dummy_user.getValueOfId(), "hey",
-            std::nullopt, std::nullopt, messenger::models::MessageType::Text
-        ));
+        dummy_message_1 =
+            drogon::sync_wait(message_repo_.send(
+                                  dummy_chat.getValueOfId(),
+                                  dummy_user.getValueOfId(), "hey",
+                                  std::nullopt, std::nullopt,
+                                  messenger::models::MessageType::Text
+                              ))
+                .first;
+        dummy_message_2 =
+            drogon::sync_wait(message_repo_.send(
+                                  dummy_chat.getValueOfId(),
+                                  dummy_user.getValueOfId(), "hey",
+                                  std::nullopt, std::nullopt,
+                                  messenger::models::MessageType::Text
+                              ))
+                .first;
+        dummy_message_3 =
+            drogon::sync_wait(message_repo_.send(
+                                  dummy_chat.getValueOfId(),
+                                  dummy_user.getValueOfId(), "hey",
+                                  std::nullopt, std::nullopt,
+                                  messenger::models::MessageType::Text
+                              ))
+                .first;
     }
 };

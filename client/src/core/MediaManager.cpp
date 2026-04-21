@@ -76,7 +76,7 @@ void MediaManager::uploadFile(
             preJson["chat_id"] = chatId.toLongLong();
             preJson["message_id"] = messageId;
             preJson["original_filename"] = fileName;
-            preJson["upload_as_file"] = uploadAsFile;
+            preJson["upload_as_file"] = uploadAsFile ? "true" : "false";
 
             QNetworkReply *preReply = m_connection->getWithBody(
                 "/chats/attachments/presigned-link",
@@ -86,7 +86,7 @@ void MediaManager::uploadFile(
             connect(
                 preReply, &QNetworkReply::finished, this,
                 [this, preReply, chatId, messageId, fileName, fileSize,
-                 fileData]() {
+                 fileData, uploadAsFile]() {
                     preReply->deleteLater();
                     if (preReply->error() != QNetworkReply::NoError) {
                         emit uploadFailed(
@@ -128,7 +128,7 @@ void MediaManager::uploadFile(
                     connect(
                         putReply, &QNetworkReply::finished, this,
                         [this, putReply, chatId, messageId, fileName,
-                         contentType, fileSize, attachmentKey]() {
+                         contentType, fileSize, attachmentKey, uploadAsFile]() {
                             putReply->deleteLater();
                             if (putReply->error() != QNetworkReply::NoError) {
                                 emit uploadFailed(
@@ -143,7 +143,9 @@ void MediaManager::uploadFile(
                             attachJson["chat_id"] = chatId.toLongLong();
                             attachJson["message_id"] = messageId;
                             attachJson["file_name"] = fileName;
-                            attachJson["file_type"] = contentType;
+                            attachJson["file_type"] =
+                                uploadAsFile ? "application/octet-stream"
+                                             : contentType;
                             attachJson["file_size_bytes"] = fileSize;
                             attachJson["s3_object_key"] = attachmentKey;
 
