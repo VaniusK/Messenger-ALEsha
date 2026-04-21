@@ -53,7 +53,7 @@
 | ------------------------------------------------------- | ------------------------------------------ | --------------------- |
 | `getMessageById(message_id)`                                         | Получить сообщение            | `Message?`        |
 | `getMessagesByChat(chat_id, before_id?, limit)`                        | Сообщения чата с пагинацией   | `vector<Message>` |
-| `sendMessage(chat_id, sender_id, text, reply_to_id?, forwarded_from_id?)` | Отправить сообщение           | `Message`         |
+| `sendMessage(chat_id, sender_id, text, reply_to_id?, forwarded_from_id?, vector<AttachmentData> attachments = {})` | Отправить сообщение           | `pair<Message, vector<Attachment>>`         |
 | `editMessage(message_id, new_text)`                                  | Редактировать сообщение       | `bool`            |
 | `removeMessage(message_id)`                                         | Удалить сообщение             | `bool`            |
 | `getById(chat_id)`                                  | Получить чат по ID                         | `Chat?`               |
