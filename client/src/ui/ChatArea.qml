@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 import QtQuick.Controls
 import QtMultimedia
+import QtQuick.Window
 import Messenger 1.0
 
 Rectangle {
@@ -15,6 +16,7 @@ Rectangle {
     property bool isLoadingHistory: false
     property bool hasMoreHistory: true
     property bool isUploading: false
+    property string activeFullscreenVideoUrl: ""
 
     MediaPlayer {
         id: globalAudioPlayer
@@ -531,7 +533,7 @@ Rectangle {
                             anchors.fill: parent; radius: 10; clip: true; color: "black"
                             MediaPlayer {
                                 id: videoPlayer
-                                source: isVideo ? fileUrl : ""
+                                source: (isVideo && chatAreaRoot.activeFullscreenVideoUrl !== fileUrl) ? fileUrl : ""
                                 videoOutput: videoOut
                             }
 
@@ -550,8 +552,7 @@ Rectangle {
                             
                             MouseArea {
                                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                                onClicked: videoPlayer.playbackState === MediaPlayer.PlayingState ? videoPlayer.pause() : videoPlayer.play()
-                                onDoubleClicked: Qt.openUrlExternally(fileUrl)
+                                onClicked: fullScreenVideoPreview.openWith(fileUrl)
                             }
                         }
                     }
@@ -1151,20 +1152,15 @@ Rectangle {
         closePolicy: Popup.CloseOnEscape
         Overlay.modal: Rectangle { color: Qt.rgba(0, 0, 0, 0.8) }
         
-        background: Rectangle {
-            color: "transparent"
-        }
-        
-        MouseArea {
-            anchors.fill: parent
-            onClicked: fullScreenImagePreview.close()
-        }
-        
         property string imageUrl: ""
         
         function openWith(url) {
             imageUrl = url;
             open();
+        }
+
+        background: Rectangle {
+            color: "transparent"
         }
         
         Image {
@@ -1207,6 +1203,234 @@ Rectangle {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: fullScreenImagePreview.close()
             }
+        }
+    }
+
+    Window {
+        id: fullScreenVideoPreview
+        title: "Video Preview"
+        visible: false
+        color: "black"
+        
+        property string videoUrl: ""
+        property bool showControls: true
+        
+        function openWith(url) {
+            videoUrl = url;
+            chatAreaRoot.activeFullscreenVideoUrl = url;
+            fullScreenVideoPreview.visibility = Window.FullScreen;
+            fullVideoPlayer.play();
+            showControls = true;
+            controlsTimer.restart();
+        }
+        
+        function closePlayer() {
+            fullVideoPlayer.stop();
+            videoUrl = "";
+            chatAreaRoot.activeFullscreenVideoUrl = "";
+            hide();
+        }
+
+        Shortcut {
+            sequence: "Escape"
+            onActivated: fullScreenVideoPreview.closePlayer()
+        }
+
+        Shortcut {
+            sequence: "Space"
+            onActivated: {
+                if (fullVideoPlayer.playbackState === MediaPlayer.PlayingState) {
+                    fullVideoPlayer.pause();
+                } else {
+                    fullVideoPlayer.play();
+                }
+                fullScreenVideoPreview.showControls = true;
+                controlsTimer.restart();
+            }
+        }
+
+        VideoOutput {
+            id: fullVideoOut
+            anchors.fill: parent
+            fillMode: VideoOutput.PreserveAspectFit
+        }
+
+        Timer {
+            id: controlsTimer
+            interval: 3000
+            repeat: false
+            onTriggered: {
+                if (fullVideoPlayer.playbackState === MediaPlayer.PlayingState) {
+                    fullScreenVideoPreview.showControls = false;
+                }
+            }
+        }
+        
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            onPositionChanged: {
+                fullScreenVideoPreview.showControls = true;
+                controlsTimer.restart();
+            }
+            onClicked: {
+                if (fullVideoPlayer.playbackState === MediaPlayer.PlayingState) {
+                    fullVideoPlayer.pause();
+                } else {
+                    fullVideoPlayer.play();
+                }
+                fullScreenVideoPreview.showControls = true;
+                controlsTimer.restart();
+            }
+        }
+
+        Rectangle {
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.margins: 20
+            width: 44; height: 44; radius: 22
+            color: "#80000000"
+            z: 200
+            opacity: fullScreenVideoPreview.showControls ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 300 } }
+            
+            Image {
+                id: videoCloseIcon
+                anchors.centerIn: parent
+                source: "qrc:/messenger_client_uri/assets/icons/close.svg"
+                width: 24; height: 24; sourceSize: Qt.size(24, 24)
+                visible: status === Image.Ready
+            }
+            Text { 
+                anchors.centerIn: parent; text: "✕"; color: "white"; font.pixelSize: 20
+                visible: videoCloseIcon.status !== Image.Ready 
+            }
+            MouseArea {
+                anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                onClicked: fullScreenVideoPreview.closePlayer()
+            }
+        }
+
+        Rectangle {
+            id: controlBar
+            anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottomMargin: 40
+            width: Math.min(900, parent.width - 100)
+            height: 110 
+            radius: 20
+            color: "#EE1c2733"
+            z: 200
+            
+            opacity: (showControls || fullVideoPlayer.playbackState !== MediaPlayer.PlayingState) ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 300 } }
+            
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 20
+                spacing: 12
+                
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 0
+
+                    RowLayout {
+                        spacing: 12
+                        Image {
+                            source: "qrc:/messenger_client_uri/assets/icons/volume.svg"
+                            width: 24; height: 24; sourceSize: Qt.size(24, 24)
+                        }
+                        Slider {
+                            id: videoVolumeSlider
+                            Layout.preferredWidth: 120
+                            from: 0; to: 1.0; value: 0.8
+                            background: Rectangle {
+                                implicitWidth: 120; implicitHeight: 4; radius: 2; color: "#30ffffff"
+                                Rectangle { width: videoVolumeSlider.visualPosition * parent.width; height: parent.height; color: "white"; radius: 2 }
+                            }
+                            handle: Rectangle {
+                                x: videoVolumeSlider.leftPadding + videoVolumeSlider.visualPosition * (videoVolumeSlider.availableWidth - width)
+                                y: videoVolumeSlider.topPadding + videoVolumeSlider.availableHeight / 2 - height / 2
+                                implicitWidth: 14; implicitHeight: 14; radius: 7; color: "white"
+                            }
+                        }
+                    }
+                    
+                    Item { Layout.fillWidth: true }
+
+                    Rectangle {
+                        Layout.preferredWidth: 54; Layout.preferredHeight: 54
+                        radius: 27; color: "transparent"
+                        Image {
+                            anchors.centerIn: parent
+                            source: fullVideoPlayer.playbackState === MediaPlayer.PlayingState 
+                                ? "qrc:/messenger_client_uri/assets/icons/pause.svg" 
+                                : "qrc:/messenger_client_uri/assets/icons/play.svg"
+                            width: 40; height: 40; sourceSize: Qt.size(40, 40)
+                        }
+                        MouseArea {
+                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                            onClicked: fullVideoPlayer.playbackState === MediaPlayer.PlayingState ? fullVideoPlayer.pause() : fullVideoPlayer.play()
+                        }
+                    }
+                    
+                    Item { Layout.fillWidth: true }
+
+                    Item { Layout.preferredWidth: 44; Layout.preferredHeight: 44 }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true; spacing: 15
+                    Text { 
+                        text: chatAreaRoot.formatGlobalTime(fullVideoPlayer.position)
+                        color: "white"; font.pixelSize: 13; font.family: "Segoe UI"
+                    }
+                    Slider {
+                        id: videoSlider
+                        Layout.fillWidth: true
+                        from: 0
+                        to: Math.max(1, fullVideoPlayer.duration)
+                        value: videoSlider.pressed ? videoSlider.value : fullVideoPlayer.position
+                        live: true
+
+                        onMoved: {
+                            fullVideoPlayer.position = value
+                        }
+
+                        background: Rectangle {
+                            implicitHeight: 4
+                            radius: 2
+                            color: "#30ffffff"
+                            Rectangle {
+                                width: videoSlider.visualPosition * parent.width
+                                height: parent.height
+                                color: "#5eb5f7"
+                                radius: 2
+                            }
+                        }
+                        handle: Rectangle {
+                            x: videoSlider.leftPadding + videoSlider.visualPosition * (videoSlider.availableWidth - width)
+                            y: videoSlider.topPadding + videoSlider.availableHeight / 2 - height / 2
+                            implicitWidth: 16
+                            implicitHeight: 16
+                            radius: 8
+                            color: "white"
+                        }
+                    }
+                    Text {
+                        text: "-" + chatAreaRoot.formatGlobalTime(Math.max(0, fullVideoPlayer.duration - fullVideoPlayer.position))
+                        color: "white"; font.pixelSize: 13; font.family: "Segoe UI"
+                    }
+                }
+            }
+        }
+
+        MediaPlayer {
+            id: fullVideoPlayer
+            source: fullScreenVideoPreview.videoUrl
+            audioOutput: AudioOutput { id: fullAudioOut; volume: videoVolumeSlider.value }
+            videoOutput: fullVideoOut
         }
     }
 }
