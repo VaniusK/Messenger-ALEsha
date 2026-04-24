@@ -65,7 +65,7 @@ QString MediaCacheManager::getOrPut(
     connect(reply, &QNetworkReply::finished, this, [this, reply, file]() {
         return MediaCacheManager::onFinished(reply, file);
     });
-    return "";
+    return QUrl::fromLocalFile(file_location.path()).toString();
 }
 
 void MediaCacheManager::onFinished(QNetworkReply *reply, QFile *file) {
