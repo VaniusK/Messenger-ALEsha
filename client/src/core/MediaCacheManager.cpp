@@ -38,10 +38,10 @@ QString MediaCacheManager::getOrPut(
     ));
 
     if (file_location.exists()) {
-        return file_location.path();
+        return QUrl::fromLocalFile(file_location.path()).toString();
     }
 
-    file = new QFile(file_location.path());
+    QFile *file = new QFile(file_location.path());
 
     if (!file->open(QIODevice::WriteOnly)) {
         qDebug() << "Couldn't open file";
@@ -49,14 +49,14 @@ QString MediaCacheManager::getOrPut(
     }
 
     QNetworkRequest request(download_url);
-    reply = m_connection->networkManager()->get(request);
-    connect(
-        reply, &QNetworkReply::finished, this, &MediaCacheManager::onFinished
-    );
-    return file_location.path();
+    auto reply = m_connection->networkManager()->get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, reply, file]() {
+        return MediaCacheManager::onFinished(reply, file);
+    });
+    return QUrl::fromLocalFile(file_location.path()).toString();
 }
 
-void MediaCacheManager::onFinished(QNetworkReply *reply) {
+void MediaCacheManager::onFinished(QNetworkReply *reply, QFile *file) {
     if (reply->error() == QNetworkReply::NoError) {
         file->write(reply->readAll());
         qDebug() << "Saved file";

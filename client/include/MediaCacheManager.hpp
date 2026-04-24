@@ -18,10 +18,8 @@ public:
 
 private:
     ConnectionManager *m_connection;
-    QNetworkReply *reply;
-    QFile *file;
 
 private slots:
 
-    void onFinished(QNetworkReply *reply);
+    void onFinished(QNetworkReply *reply, QFile *file);
 };
