@@ -34,15 +34,19 @@ QString MediaCacheManager::getOrPut(
         cache_dir.mkdir(".");
     }
 
+    QString extension = QFileInfo(s3_object_key).suffix();
+
+    if (extension.endsWith("%22")) {
+        extension.chop(3);
+    }
+
     QString file_name = QCryptographicHash::hash(
                             s3_object_key.toUtf8(), QCryptographicHash::Md5
                         )
                             .toHex() +
-                        "." + QFileInfo(s3_object_key).suffix().remove('"');
+                        "." + extension;
 
-    QDir file_location(
-        QDir(cache_dir).path() + QDir::separator() + s3_object_key
-    );
+    QDir file_location(QDir(cache_dir).path() + QDir::separator() + file_name);
 
     if (file_location.exists()) {
         return QUrl::fromLocalFile(file_location.path()).toString();
