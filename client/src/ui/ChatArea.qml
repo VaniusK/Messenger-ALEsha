@@ -522,6 +522,7 @@ Rectangle {
                                 source: isImage ? fileUrl : ""
                                 fillMode: Image.PreserveAspectFit 
                                 cache: false
+                                asynchronous: true
                                 
                                 function reload() {
                                     var oldSource = source
