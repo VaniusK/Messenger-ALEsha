@@ -24,6 +24,10 @@ int main(int argc, char *argv[]) {
 
     QApplication app(argc, argv);
 
+    QCoreApplication::setOrganizationName("AlyoshaTeam");
+    QCoreApplication::setOrganizationDomain("alyosha.su");
+    QCoreApplication::setApplicationName("Alyosha");
+
     auto *stateManager = new StateManager(&app);
     auto *connectionManager = new ConnectionManager(
         [stateManager]() { return stateManager->getToken(); }, &app
