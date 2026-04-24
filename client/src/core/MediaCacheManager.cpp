@@ -48,7 +48,8 @@ QString MediaCacheManager::getOrPut(
 
     QDir file_location(QDir(cache_dir).path() + QDir::separator() + file_name);
 
-    if (file_location.exists()) {
+    QFileInfo info(file_location.path());
+    if (info.exists() && info.size() > 0) {
         return QUrl::fromLocalFile(file_location.path()).toString();
     }
 
@@ -64,7 +65,7 @@ QString MediaCacheManager::getOrPut(
     connect(reply, &QNetworkReply::finished, this, [this, reply, file]() {
         return MediaCacheManager::onFinished(reply, file);
     });
-    return QUrl::fromLocalFile(file_location.path()).toString();
+    return "";
 }
 
 void MediaCacheManager::onFinished(QNetworkReply *reply, QFile *file) {
