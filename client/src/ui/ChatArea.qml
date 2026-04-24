@@ -497,7 +497,9 @@ Rectangle {
                         visible: isImage
                         anchors.top: parent.top; anchors.left: parent.left; anchors.right: parent.right; anchors.margins: 4
                         
-                        property real calculatedHeight: 150 
+                        property real calculatedHeight: (attachedImage.status === Image.Ready && attachedImage.sourceSize.width > 0) 
+                            ? Math.min(300, Math.max(100, width * (attachedImage.sourceSize.height / attachedImage.sourceSize.width))) 
+                            : 150
                         height: isImage ? calculatedHeight : 0
                         
                         Rectangle {
@@ -509,12 +511,6 @@ Rectangle {
                                 fillMode: Image.PreserveAspectFit 
                                 cache: false
                                 
-                                onStatusChanged: {
-                                    if (status === Image.Ready) {
-                                        var ratio = sourceSize.height / sourceSize.width;
-                                        imageContainer.calculatedHeight = Math.min(300, Math.max(100, imageContainer.width * ratio));
-                                    }
-                                }
                                 function reload() {
                                     var oldSource = source
                                     source = ""

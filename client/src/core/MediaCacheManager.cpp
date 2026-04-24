@@ -72,7 +72,7 @@ void MediaCacheManager::onFinished(QNetworkReply *reply, QFile *file) {
     if (reply->error() == QNetworkReply::NoError) {
         file->write(reply->readAll());
         qDebug() << "Saved file " << file->fileName();
-        emit onImageLoaded(file->fileName());
+        emit onImageLoaded(QUrl::fromLocalFile(file->fileName()).toString());
     } else {
         qDebug() << "Error while saving file:" << reply->errorString();
     }
