@@ -19,6 +19,9 @@ public:
 private:
     ConnectionManager *m_connection;
 
+signals:
+    void ImageLoaded();
+
 private slots:
 
     void onFinished(QNetworkReply *reply, QFile *file);

@@ -516,6 +516,19 @@ Rectangle {
                                         imageContainer.calculatedHeight = Math.min(300, Math.max(100, imageContainer.width * ratio));
                                     }
                                 }
+                                function reload() {
+                                    var oldSource = source
+                                    source = ""
+                                    source = oldSource
+                                }
+
+                                Connections {
+                                    target: MediaCacheLayer
+                                    function onImageLoaded() {
+                                        myImage.reload()
+                                    }
+                                }
+
                             }
                             MouseArea {
                                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor

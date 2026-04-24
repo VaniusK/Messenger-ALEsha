@@ -47,6 +47,9 @@ int main(int argc, char *argv[]) {
     qmlRegisterSingletonInstance("Messenger", 1, 0, "ChatLayer", chatManager);
     qmlRegisterSingletonInstance("Messenger", 1, 0, "MediaLayer", mediaManager);
     qmlRegisterSingletonInstance("Messenger", 1, 0, "VoiceLayer", voiceManager);
+    qmlRegisterSingletonInstance(
+        "Messenger", 1, 0, "MediaCacheLayer", mediaCacheManager
+    );
     const QUrl url(u"qrc:/messenger_client_uri/src/ui/main.qml"_qs);
     engine.load(url);
     return app.exec();
