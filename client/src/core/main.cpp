@@ -6,6 +6,7 @@
 #include "AuthManager.hpp"
 #include "ChatManager.hpp"
 #include "ConnectionManager.hpp"
+#include "MediaCacheManager.hpp"
 #include "MediaManager.hpp"
 #include "StateManager.hpp"
 #include "VoiceManager.hpp"
@@ -34,8 +35,10 @@ int main(int argc, char *argv[]) {
     );
     auto *authManager = new AuthManager(connectionManager, stateManager, &app);
     auto *chatManager = new ChatManager(connectionManager, stateManager, &app);
-    auto *mediaManager =
-        new MediaManager(connectionManager, stateManager, &app);
+    auto *mediaCacheManager = new MediaCacheManager(connectionManager, &app);
+    auto *mediaManager = new MediaManager(
+        connectionManager, stateManager, mediaCacheManager, &app
+    );
     auto *voiceManager = new VoiceManager(&app);
 
     QQmlApplicationEngine engine;
@@ -45,6 +48,9 @@ int main(int argc, char *argv[]) {
     );
     qmlRegisterSingletonInstance("Messenger", 1, 0, "Auth", authManager);
     qmlRegisterSingletonInstance("Messenger", 1, 0, "ChatLayer", chatManager);
+    qmlRegisterSingletonInstance(
+        "Messenger", 1, 0, "MediaCache", mediaCacheManager
+    );
     qmlRegisterSingletonInstance("Messenger", 1, 0, "MediaLayer", mediaManager);
     qmlRegisterSingletonInstance("Messenger", 1, 0, "VoiceLayer", voiceManager);
     const QUrl url(u"qrc:/messenger_client_uri/src/ui/main.qml"_qs);
