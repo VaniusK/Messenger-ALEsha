@@ -34,11 +34,12 @@ int main(int argc, char *argv[]) {
         [stateManager]() { return stateManager->getToken(); }, &app
     );
     auto *authManager = new AuthManager(connectionManager, stateManager, &app);
-    auto *chatManager = new ChatManager(connectionManager, stateManager, &app);
     auto *mediaCacheManager = new MediaCacheManager(connectionManager, &app);
-    auto *mediaManager = new MediaManager(
+    auto *chatManager = new ChatManager(
         connectionManager, stateManager, mediaCacheManager, &app
     );
+    auto *mediaManager =
+        new MediaManager(connectionManager, stateManager, &app);
     auto *voiceManager = new VoiceManager(&app);
 
     QQmlApplicationEngine engine;
