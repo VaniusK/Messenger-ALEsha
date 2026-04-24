@@ -20,7 +20,7 @@ private:
     ConnectionManager *m_connection;
 
 signals:
-    void onImageLoaded(const QString &localFilePath);
+    void imageLoaded(const QString &localFilePath);
 
 private slots:
 
