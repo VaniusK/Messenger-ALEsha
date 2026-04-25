@@ -97,7 +97,7 @@ Rectangle {
         function onChatsHistoryLoaded(messages) {
             isLoadingHistory = true
             chatModel.clear()
-            for (var i = 0; i < messages.length; i++) {
+            for (var i = messages.length - 1; i >= 0; i--) {
                 chatModel.append(messages[i])
             }
 
@@ -107,7 +107,7 @@ Rectangle {
 
             if (chatModel.count > 0) {
                 Qt.callLater(function() {
-                    messageList.positionViewAtEnd()
+                    // messageList.positionViewAtEnd()
 
                     if (messageList.contentHeight < messageList.height && chatModel.count > 0) {
                         var topmostMsgId = chatModel.get(0)._id || chatModel.get(0).id;
@@ -383,6 +383,7 @@ Rectangle {
             spacing: 8
             topMargin: 15
             bottomMargin: 15
+            verticalLayoutDirection: ListView.BottomToTop
 
             onContentYChanged: {
                 if (contentY <= 0 && chatModel.count > 0) {
