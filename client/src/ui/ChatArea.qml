@@ -522,7 +522,6 @@ Rectangle {
                                 anchors.fill: parent
                                 source: isImage ? fileUrl : ""
                                 fillMode: Image.PreserveAspectFit 
-                                cache: false
                                 asynchronous: true
                                 
                                 function reload() {
