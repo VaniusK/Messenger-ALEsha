@@ -2,42 +2,69 @@
 #include <drogon/drogon.h>
 #include <json/forwards.h>
 #include <json/value.h>
+#include <exception>
 #include <string>
 #include <regex>
 #include "services/UserService.hpp"
 #include "utils/controller_utils.hpp"
 #include "utils/server_response_macro.hpp"
+#include "utils/server_exceptions.hpp"
+#include "dto/UserServiceDtos.hpp"
 
 using namespace api::v1;
+using namespace messenger::dto;
 
 Task<HttpResponsePtr>
 UserController::getUserById(const HttpRequestPtr req, int64_t &&user_id) {
-    LOG_INFO <<"Entered userController -> getUserById";
-    co_return co_await user_service.getUserById(user_id);
+    LOG_INFO << "Entered userController -> getUserById";
+    Json::Value response_json;
+    try{
+        GetUserResponseDto response_dto = co_await user_service.getUserById(user_id);
+        response_json = response_dto.toJson();
+        RETURN_RESPONSE_CODE_200(response_json)
+    }
+    catch (messenger::exceptions::NotFoundException &e){
+        response_json["message"] = e.what();
+        RETURN_RESPONSE_CODE_404(response_json)
+    }
+    catch (std::exception &e){
+        response_json["message"] = "Internal server error";
+        RETURN_RESPONSE_CODE_500(response_json)
+    }
 }
 
 Task<HttpResponsePtr>
 UserController::getUserByHandle(const HttpRequestPtr req, std::string &&user_handle) {
     LOG_INFO << "Entered userController -> getUserByHandle";
-    co_return co_await user_service.getUserByHandle(std::move(user_handle));
+    Json::Value response_json;
+    try{
+        GetUserResponseDto response_dto = co_await user_service.getUserByHandle(std::move(user_handle));
+        response_json = response_dto.toJson();
+        RETURN_RESPONSE_CODE_200(response_json)
+    }
+    catch (messenger::exceptions::NotFoundException &e){
+        response_json["message"] = e.what();
+        RETURN_RESPONSE_CODE_404(response_json)
+    }
+    catch (std::exception &e){
+        response_json["message"] = "Internal server error";
+        RETURN_RESPONSE_CODE_500(response_json)
+    }
 }
 
 Task<HttpResponsePtr> UserController::searchUser(const HttpRequestPtr req) {
     LOG_INFO << "Entered userController -> searchUser";
-    auto request_json = req->getJsonObject();
     Json::Value response_json;
-    if (utils::find_missed_fields(
-            response_json, request_json, {"query", "limit"}
+    if (utils::find_missed_queries(
+            response_json, req, {"query", "limit"}
         )) {
         RETURN_RESPONSE_CODE_400(response_json)
     }
-    if ((*request_json)["limit"].asInt64() > 100) {
-        (*request_json)["limit"] = 100;
-    }
-    if ((*request_json)["limit"].asInt64() < 1) {
-        (*request_json)["limit"] = 1;
-    }
-    co_return co_await user_service.searchUser(request_json);
+    SearchUserRequestDto request_dto(req);
+    SearchUserResponseDto response_dto = co_await user_service.searchUser(std::move(request_dto));
+    
+    response_json["results"] = response_dto.toJson();
+    RETURN_RESPONSE_CODE_200(response_json)
 }
 
 bool UserController::isPasswordValid(const std::string &password){
@@ -58,15 +85,29 @@ Task<HttpResponsePtr> UserController::registerUser(HttpRequestPtr req) {
         )) {
         RETURN_RESPONSE_CODE_400(response_json)
     }
-    if (!isHandleValid((*request_json)["handle"].asString())){
+    RegisterUserRequestDto request_dto(req);
+    if (!isHandleValid(request_dto.handle)){
         response_json["message"] = "Handle is invalid";
         RETURN_RESPONSE_CODE_400(response_json)
     }
-    if (!isPasswordValid((*request_json)["password"].asString())){
+    if (!isPasswordValid(request_dto.password)){
         response_json["message"] = "Password is invalid";
         RETURN_RESPONSE_CODE_400(response_json)
     }
-    co_return co_await user_service.registerUser(request_json);
+
+    try{
+        RegisterUserResponseDto response_dto = co_await user_service.registerUser(std::move(request_dto));
+        response_json = response_dto.toJson();
+        RETURN_RESPONSE_CODE_201(response_json)
+    }
+    catch (messenger::exceptions::ConflictException &e){
+        response_json["message"] = e.what();
+        RETURN_RESPONSE_CODE_409(response_json)
+    }
+    catch (std::exception &e){
+        response_json["message"] = "Internal server error";
+        RETURN_RESPONSE_CODE_500(response_json)
+    }
 }
 
 Task<HttpResponsePtr> UserController::loginUser(HttpRequestPtr req) {
@@ -78,20 +119,34 @@ Task<HttpResponsePtr> UserController::loginUser(HttpRequestPtr req) {
         )) {
         RETURN_RESPONSE_CODE_400(response_json)
     }
-    std::string user_handle = (*request_json)["handle"].asString();
-    if (!isHandleValid(user_handle)){
+    LoginUserRequestDto request_dto(req);
+    if (!isHandleValid(request_dto.handle)){
         response_json["message"] = "Handle is invalid";
         RETURN_RESPONSE_CODE_400(response_json)
     }
-    if (!isPasswordValid((*request_json)["password"].asString())){
+    if (!isPasswordValid(request_dto.password)){
         response_json["message"] = "Password is invalid";
         RETURN_RESPONSE_CODE_400(response_json)
     }
-    if (!checkUserAuthTries(user_handle)) {
-        LOG_WARN << "Too many auth tries to user " << user_handle;
+    if (!checkUserAuthTries(request_dto.handle)) {
+        LOG_WARN << "Too many auth tries to user " << request_dto.handle;
         RETURN_RESPONSE_CODE_429(response_json)
     }
-    co_return co_await user_service.loginUser(request_json);
+
+    try{
+        LoginUserResponseDto response_dto = co_await user_service.loginUser(request_dto);
+        response_json = std::move(response_dto.toJson());
+        RETURN_RESPONSE_CODE_200(response_json)
+    }
+    catch (messenger::exceptions::UnauthorizedException &e){
+        response_json["message"] = e.what();
+        RETURN_RESPONSE_CODE_401(response_json)
+    }
+    catch (std::exception &e) {
+        response_json["message"] = "Internal server error";
+        RETURN_RESPONSE_CODE_500(response_json)
+    }
+    
 }
 
 bool UserController::checkUserAuthTries(const std::string &user_handle) {
