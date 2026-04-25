@@ -18,6 +18,7 @@ public:
 
 private:
     ConnectionManager *m_connection;
+    QSet<QString> m_activeDownloads;
 
 signals:
     void imageLoaded(const QString &localFilePath);

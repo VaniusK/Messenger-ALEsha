@@ -55,6 +55,12 @@ QString MediaCacheManager::getOrPut(
 
     QFile *file = new QFile(file_location.path());
 
+    if (m_activeDownloads.contains(
+            QUrl::fromLocalFile(file->fileName()).toString()
+        )) {
+        return QUrl::fromLocalFile(file_location.path()).toString();
+    }
+
     if (!file->open(QIODevice::WriteOnly)) {
         qDebug() << "Couldn't open file " << file_name;
         return "";
@@ -65,6 +71,9 @@ QString MediaCacheManager::getOrPut(
     connect(reply, &QNetworkReply::finished, this, [this, reply, file]() {
         return MediaCacheManager::onFinished(reply, file);
     });
+    m_activeDownloads.insert(
+        QUrl::fromLocalFile(file_location.path()).toString()
+    );
     return QUrl::fromLocalFile(file_location.path()).toString();
 }
 
@@ -76,6 +85,9 @@ void MediaCacheManager::onFinished(QNetworkReply *reply, QFile *file) {
     } else {
         qDebug() << "Error while saving file:" << reply->errorString();
     }
+    m_activeDownloads.erase(
+        m_activeDownloads.find(QUrl::fromLocalFile(file->fileName()).toString())
+    );
 
     file->close();
     file->deleteLater();
