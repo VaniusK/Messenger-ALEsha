@@ -3,17 +3,12 @@
 #include <json/value.h>
 #include <string>
 #include <vector>
+#include "dto/ServicesDtoBase.hpp"
 #include "models/Users.h"
 
 using User = drogon_model::messenger_db::Users;
 
 namespace messenger::dto {
-
-struct ResponseDto {
-    virtual Json::Value toJson() = 0;
-};
-
-struct RequestDto {};
 
 struct SearchUserRequestDto : RequestDto {
     std::string query;
@@ -62,7 +57,7 @@ struct GetUserResponseDto : ResponseDto {
     }
 };
 
-struct RegisterUserRequestDto {
+struct RegisterUserRequestDto : RequestDto {
     std::string handle;
     std::string password;
     std::string display_name;
@@ -75,7 +70,7 @@ struct RegisterUserRequestDto {
     }
 };
 
-struct RegisterUserResponseDto {
+struct RegisterUserResponseDto : ResponseDto {
     Json::Value toJson() {
         Json::Value response_json;
         response_json["message"] = "New user was successfully created";
@@ -83,7 +78,7 @@ struct RegisterUserResponseDto {
     }
 };
 
-struct LoginUserRequestDto {
+struct LoginUserRequestDto : RequestDto {
     std::string handle;
     std::string password;
 
@@ -94,7 +89,7 @@ struct LoginUserRequestDto {
     }
 };
 
-struct LoginUserResponseDto {
+struct LoginUserResponseDto : ResponseDto {
     std::string token;
 
     LoginUserResponseDto(std::string &&token_) : token(token_) {

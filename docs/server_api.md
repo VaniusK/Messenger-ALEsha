@@ -183,7 +183,7 @@
 - **Аргументы (JSON)**:
   - `text`: string
   - `reply_to_id`: int64?
-  - `forward_info`: object?
+  - `forward_info`: int64?
   - `type`: string (text, voice, media, etc (watch db docs))
   - `attachment_tokens`: list[string] - токены выданные при получении ссылок
 - **Возвращает**:
