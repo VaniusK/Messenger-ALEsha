@@ -42,4 +42,11 @@ public:
         : std::runtime_error(msg) {
     }
 };
+
+class BadRequestException : public std::runtime_error {
+public:
+    explicit BadRequestException(const std::string &msg)
+        : std::runtime_error(msg) {
+    }
+};
 }  // namespace messenger::exceptions

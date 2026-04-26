@@ -99,6 +99,7 @@ public:
 
 private:
     ChatService chat_service;
+    bool validateMessageType(const std::string &message_type);
 };
 }  // namespace v1
 }  // namespace api

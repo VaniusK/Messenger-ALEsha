@@ -53,7 +53,7 @@ Task<LoginUserResponseDto> UserService::loginUser(
             );
         }
         const char *env_key = std::getenv("JWT_KEY");
-        if (env_key) {
+        if (!env_key) {
             throw messenger::exceptions::InternalServerErrorException(
                 "JWT_KEY is not set"
             );
