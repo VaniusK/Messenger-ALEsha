@@ -57,7 +57,7 @@ public:
     ADD_METHOD_TO(
         ChatController::getAttachmentLinks,
         "/v1/chats/attachments/presigned-links",
-        Get,
+        Post,
         "api::v1::JsonValidatorFilter",
         "api::v1::AuthFilter"
     );

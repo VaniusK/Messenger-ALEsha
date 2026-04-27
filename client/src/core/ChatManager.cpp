@@ -175,6 +175,7 @@ void ChatManager::fetchChatHistory(const QString &chatId, int beforeId) {
 void ChatManager::sendMessage(const QString &chatId, const QString &text) {
     QJsonObject json;
     json["text"] = text;
+    json["type"] = "text";
 
     QNetworkReply *reply = m_connection->post(
         "/chats/" + chatId + "/messages", QJsonDocument(json).toJson()

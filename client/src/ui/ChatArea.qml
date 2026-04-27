@@ -419,8 +419,8 @@ Rectangle {
                                        (fileTypeStr.indexOf("audio/") === 0) ||
                                        (typeof model.text === 'string' && model.text.indexOf("VOICE::") === 0)
 
-                property bool isImage: !isVoice && fileTypeStr.indexOf("image/") === 0
-                property bool isVideo: !isVoice && fileTypeStr.indexOf("video/") === 0
+                property bool isImage: !isVoice && fileTypeStr.indexOf("image/") === 0 && model.type !== "text"
+                property bool isVideo: !isVoice && fileTypeStr.indexOf("video/") === 0 && model.type !== "text"
 
                 property bool hasFileAttachment: firstAttachment !== null && !isVoice && !isImage && !isVideo
 
@@ -1159,7 +1159,9 @@ Rectangle {
         onSendRequested: function(filePath, fileType, asFile, caption) {
             messageInput.text = ""
             isUploading = true
-            MediaLayer.uploadFile(activeChatId, filePath, asFile, caption, "text")
+
+            var msgType = (asFile || fileType === "document") ? "text" : "media"
+            MediaLayer.uploadFile(activeChatId, filePath, asFile, caption, msgType)
         }
         onCancelRequested: {}
     }
@@ -1318,17 +1320,9 @@ Rectangle {
             z: 200
             opacity: fullScreenVideoPreview.showControls ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 300 } }
-            
-            Image {
-                id: videoCloseIcon
-                anchors.centerIn: parent
-                source: "qrc:/messenger_client_uri/assets/icons/close.svg"
-                width: 24; height: 24; sourceSize: Qt.size(24, 24)
-                visible: status === Image.Ready
-            }
+
             Text { 
                 anchors.centerIn: parent; text: "✕"; color: "white"; font.pixelSize: 20
-                visible: videoCloseIcon.status !== Image.Ready 
             }
             MouseArea {
                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
@@ -1347,7 +1341,7 @@ Rectangle {
             color: "#EE1c2733"
             z: 200
             
-            opacity: (showControls || fullVideoPlayer.playbackState !== MediaPlayer.PlayingState) ? 1 : 0
+            opacity: (fullScreenVideoPreview.showControls || fullVideoPlayer.playbackState !== MediaPlayer.PlayingState) ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 300 } }
             
