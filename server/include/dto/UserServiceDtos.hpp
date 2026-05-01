@@ -15,6 +15,10 @@ struct SearchUserRequestDto : RequestDto {
     std::string query;
     int64_t limit;
 
+    SearchUserRequestDto(std::string query_, int64_t limit_)
+        : query(std::move(query_)), limit(limit_) {
+    }
+
     SearchUserRequestDto(drogon::HttpRequestPtr req) {
         query = req->getParameter("query");
         try {
@@ -47,6 +51,8 @@ struct SearchUserResponseDto : ResponseDto {
 struct GetUserResponseDto : ResponseDto {
     User user;
 
+    GetUserResponseDto() = default;
+
     GetUserResponseDto(User &&user_) : user(std::move(user_)) {
     }
 
@@ -62,6 +68,16 @@ struct RegisterUserRequestDto : RequestDto {
     std::string handle;
     std::string password;
     std::string display_name;
+
+    RegisterUserRequestDto(
+        std::string handle_,
+        std::string password_,
+        std::string display_name_
+    )
+        : handle(std::move(handle_)),
+          password(std::move(password_)),
+          display_name(std::move(display_name_)) {
+    }
 
     RegisterUserRequestDto(std::shared_ptr<Json::Value> request_json) {
         handle = (*request_json)["handle"].asString();
@@ -82,6 +98,10 @@ struct LoginUserRequestDto : RequestDto {
     std::string handle;
     std::string password;
 
+    LoginUserRequestDto(std::string handle_, std::string password_)
+        : handle(std::move(handle_)), password(std::move(password_)) {
+    }
+
     LoginUserRequestDto(std::shared_ptr<Json::Value> request_json) {
         handle = (*request_json)["handle"].asString();
         password = (*request_json)["password"].asString();
@@ -91,7 +111,9 @@ struct LoginUserRequestDto : RequestDto {
 struct LoginUserResponseDto : ResponseDto {
     std::string token;
 
-    LoginUserResponseDto(std::string &&token_) : token(token_) {
+    LoginUserResponseDto() = default;
+
+    LoginUserResponseDto(std::string token_) : token(std::move(token_)) {
     }
 
     Json::Value toJson() override {
