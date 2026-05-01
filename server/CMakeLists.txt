@@ -26,6 +26,7 @@ FetchContent_Declare( # download bcrypt from github
 )
 fetchcontent_makeavailable(jwt-cpp bcrypt) # make available for the project
 
+
 configure_file(
     "config.json"
     "${CMAKE_CURRENT_BINARY_DIR}/config.json"
@@ -34,17 +35,9 @@ configure_file(
 
 add_executable(${PROJECT_NAME} src/main.cc) # create executable
 
-# ##############################################################################
-# If you include the drogon source code locally in your project, use this method
-# to add drogon 
-# add_subdirectory(drogon) 
-# target_link_libraries(${PROJECT_NAME} PRIVATE drogon jwt-cpp::jwt-cpp bcrypt)
-#
-# and comment out the following lines
 find_package(Drogon CONFIG REQUIRED) # find drogon
-target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon jwt-cpp::jwt-cpp bcrypt) # link libraries
-
-# ##############################################################################
+find_package(miniocpp REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon jwt-cpp::jwt-cpp bcrypt miniocpp::miniocpp) # link libraries
 
 if (CMAKE_CXX_STANDARD LESS 20)
     message(FATAL_ERROR "c++20 or higher is required")
@@ -53,6 +46,10 @@ elseif (CMAKE_CXX_STANDARD LESS 23)
 else ()
     message(STATUS "use c++20")
 endif ()
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror=return-type -Werror=maybe-uninitialized)
+endif()
 
 aux_source_directory(src SRC_SRC) # get all files from src
 aux_source_directory(src/repositories REPO_SRC) # get all files from src/repositories
@@ -104,14 +101,16 @@ if(BUILD_TESTS)
 
     enable_testing()
     aux_source_directory(tests TEST_FILES)
-    aux_source_directory(tests/service_unit_tests SERVICE_UNIT_TEST_FILES)
+    aux_source_directory(tests/services TEST_FILES)
+    aux_source_directory(tests/repositories TEST_FILES)
+    aux_source_directory(tests/controllers TEST_FILES)
     
     add_executable(server_tests 
         ${TEST_FILES}
         ${SERVICE_UNIT_TEST_FILES}
     )
     target_link_libraries(server_tests GTest::gtest GTest::gmock)
-    target_link_libraries(server_tests Drogon::Drogon jwt-cpp::jwt-cpp bcrypt)
+    target_link_libraries(server_tests Drogon::Drogon jwt-cpp::jwt-cpp bcrypt miniocpp::miniocpp)
 
     aux_source_directory(src SRC_SRC) # get all files from src
     aux_source_directory(src/repositories REPO_SRC) # get all files from src/repositories

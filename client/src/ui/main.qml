@@ -1,4 +1,5 @@
 import QtQuick
+import Messenger 1.0
 
 Window {
     id: window
@@ -12,10 +13,18 @@ Window {
     Loader {
         id: pageLoader
         anchors.fill: parent
-        source: "sign_up.qml"
+        source: "sign_in.qml"
     }
 
     function push(page) {
         pageLoader.source = page
+    }
+
+    Component.onCompleted: {
+        AppState.loadSession()
+        if (AppState.isLoggedIn()) {
+            ChatLayer.connectWebSocket()
+            pageLoader.source = "chat.qml"
+        }
     }
 }

@@ -1,5 +1,6 @@
 #include "ChatManager.hpp"
 #include <QDebug>
+#include <QImageReader>
 #include <QJsonDocument>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -7,9 +8,13 @@
 ChatManager::ChatManager(
     ConnectionManager *connection,
     StateManager *stateManager,
+    MediaCacheManager *media_cache,
     QObject *parent
 )
-    : QObject(parent), m_connection(connection), m_stateManager(stateManager) {
+    : QObject(parent),
+      m_connection(connection),
+      m_stateManager(stateManager),
+      m_media_cache(media_cache) {
     m_webSocket =
         new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this);
 
@@ -30,6 +35,24 @@ ChatManager::ChatManager(
         QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error), this,
         &ChatManager::onWebSocketError
     );
+
+    connect(
+        m_webSocket, &QWebSocket::sslErrors, this,
+        [this](const QList<QSslError> &errors) {
+            QString host = m_webSocket->requestUrl().host();
+            qDebug() << "[ChatManager] WebSocket SSL Errors for"
+                     << m_webSocket->requestUrl().toString();
+            for (const auto &error : errors) {
+                qDebug() << "  -" << error.errorString();
+            }
+
+            if (host == "api.localhost" || host == "127.0.0.1") {
+                qDebug() << "[ChatManager] Automatically ignoring SSL errors "
+                            "for local host.";
+                m_webSocket->ignoreSslErrors();
+            }
+        }
+    );
 }
 
 void ChatManager::connectWebSocket() {
@@ -46,7 +69,7 @@ void ChatManager::connectWebSocket() {
 void ChatManager::searchUsers(const QString &query) {
     QJsonObject json;
     json["query"] = query;
-    json["limit"] = 20;
+    json["limit"] = 50;
 
     QNetworkReply *reply = m_connection->getWithBody(
         "/users/search", QJsonDocument(json).toJson()
@@ -98,10 +121,19 @@ void ChatManager::fetchChats() {
     });
 }
 
-void ChatManager::fetchChatHistory(const QString &chatId) {
-    QNetworkReply *reply = m_connection->get("/chats/" + chatId + "/messages");
+void ChatManager::fetchChatHistory(const QString &chatId, int beforeId) {
+    QJsonObject reqJson;
+    reqJson["limit"] = 50;
 
-    connect(reply, &QNetworkReply::finished, [this, reply]() {
+    if (beforeId > 0) {
+        reqJson["before_id"] = beforeId;
+    }
+
+    QNetworkReply *reply = m_connection->getWithBody(
+        "/chats/" + chatId + "/messages", QJsonDocument(reqJson).toJson()
+    );
+
+    connect(reply, &QNetworkReply::finished, [this, reply, beforeId]() {
         reply->deleteLater();
         if (reply->error() == QNetworkReply::NoError) {
             QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
@@ -115,6 +147,9 @@ void ChatManager::fetchChatHistory(const QString &chatId) {
             QJsonArray messages;
             for (int i = raw.size() - 1; i >= 0; i--) {
                 QJsonObject msg = raw[i].toObject();
+
+                cacheMessageMedia(msg);
+
                 QJsonValue senderValue = msg["sender_id"];
                 QString senderIdStr =
                     senderValue.isString()
@@ -125,7 +160,12 @@ void ChatManager::fetchChatHistory(const QString &chatId) {
                 msg["is_me"] = (senderIdStr == currentUserIdStr);
                 messages.append(msg);
             }
-            emit chatsHistoryLoaded(messages);
+
+            if (beforeId > 0) {
+                emit chatsHistoryPrepended(messages);
+            } else {
+                emit chatsHistoryLoaded(messages);
+            }
         } else {
             emit chatError("Fetch history failed: " + reply->errorString());
         }
@@ -143,8 +183,11 @@ void ChatManager::sendMessage(const QString &chatId, const QString &text) {
     connect(reply, &QNetworkReply::finished, [this, reply, chatId]() {
         reply->deleteLater();
         if (reply->error() == QNetworkReply::NoError) {
-            emit messageSentSuccess();
-            fetchChatHistory(chatId);
+            QJsonObject obj =
+                QJsonDocument::fromJson(reply->readAll()).object();
+            QJsonObject msg = obj["message"].toObject();
+            msg["is_me"] = true;
+            emit messageSentSuccess(msg);
         } else {
             emit chatError("Send message failed: " + reply->errorString());
         }
@@ -188,6 +231,26 @@ void ChatManager::openDirectChat(
     });
 }
 
+void ChatManager::cacheMessageMedia(QJsonObject &message) {
+    QJsonArray attachments = message["attachments"].toArray();
+    for (int i = 0; i < attachments.size(); i++) {
+        QJsonObject attachment = attachments.at(i).toObject();
+        QString cachedFileLocation = m_media_cache->getOrPut(
+            attachment["s3_object_key"].toString(),
+            attachment["download_url"].toString()
+        );
+        QString localFilePath = QUrl(cachedFileLocation).toLocalFile();
+        QImageReader reader(localFilePath);
+        attachment.insert("download_url", cachedFileLocation);
+        attachment.insert("img_width", reader.size().width());
+        attachment.insert("img_height", reader.size().height());
+        attachments.replace(i, attachment);
+        qDebug() << "[ChatManager] saved file " << cachedFileLocation
+                 << "to cache";
+    }
+    message["attachments"] = attachments;
+}
+
 void ChatManager::onWebSocketConnected() {
     qDebug() << "[ChatManager] WebSocket connected!";
     emit webSocketConnected();
@@ -207,4 +270,71 @@ void ChatManager::onWebSocketTextMessageReceived(const QString &message) {
 void ChatManager::onWebSocketError(QAbstractSocket::SocketError error) {
     qDebug() << "[ChatManager] WS error:" << error;
     emit chatError("WebSocket error: " + QString::number(error));
+}
+
+void ChatManager::sendMessageWithAttachment(
+    const QString &chatId,
+    const QString &caption,
+    const QString &fileName,
+    const QString &fileType,
+    qint64 fileSizeBytes,
+    const QString &s3ObjectKey
+) {
+    QJsonObject json;
+    json["text"] = caption.trimmed();
+
+    QNetworkReply *reply = m_connection->post(
+        "/chats/" + chatId + "/messages", QJsonDocument(json).toJson()
+    );
+
+    connect(
+        reply, &QNetworkReply::finished, this,
+        [this, reply, chatId, fileName, fileType, fileSizeBytes,
+         s3ObjectKey]() {
+            reply->deleteLater();
+
+            if (reply->error() != QNetworkReply::NoError) {
+                emit chatError(
+                    "Не удалось создать сообщение: " + reply->errorString()
+                );
+                return;
+            }
+
+            QJsonObject obj =
+                QJsonDocument::fromJson(reply->readAll()).object();
+            QJsonObject msg = obj["message"].toObject();
+            msg["is_me"] = true;
+            emit messageSentSuccess(msg);
+
+            QJsonValue idVal = msg["id"];
+            qint64 messageId = idVal.isString()
+                                   ? idVal.toString().toLongLong()
+                                   : static_cast<qint64>(idVal.toDouble());
+
+            QJsonObject attachJson;
+            attachJson["chat_id"] = chatId.toLongLong();
+            attachJson["message_id"] = messageId;
+            attachJson["file_name"] = fileName;
+            attachJson["file_type"] = fileType;
+            attachJson["file_size_bytes"] = fileSizeBytes;
+            attachJson["s3_object_key"] = s3ObjectKey;
+
+            QNetworkReply *attachReply = m_connection->post(
+                "/chats/attachments", QJsonDocument(attachJson).toJson()
+            );
+
+            connect(
+                attachReply, &QNetworkReply::finished,
+                [this, attachReply]() {
+                    attachReply->deleteLater();
+                    if (attachReply->error() != QNetworkReply::NoError) {
+                        qDebug() << "[ChatManager] Ошибка привязки файла:"
+                                 << attachReply->errorString();
+                    } else {
+                        qDebug() << "[ChatManager] Файл успешно привязан";
+                    }
+                }
+            );
+        }
+    );
 }
