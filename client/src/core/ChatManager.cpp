@@ -132,10 +132,11 @@ void ChatManager::fetchChatHistory(const QString &chatId, int beforeId) {
 
     int64_t index_to_check = static_cast<int64_t>(m_chats[chat_id].size()) - 40;
 
-    // Если новых сообщений получим меньше 10, ничего не делаем.
-    if (index_to_check >= 0 and
-        static_cast<QJsonValue>(m_chats[chat_id][index_to_check])["id"].toInt(
-        )) {
+    // Если не подгружаем новые сообщения и уже считали чат, просто выводит уже
+    // имеющиеся
+    if (m_chats[chat_id].size() > 0 and
+        beforeId != m_chats[chat_id].last()["id"].toInt()) {
+        emit chatsHistoryLoaded(m_chats[chat_id]);
         return;
     }
 
