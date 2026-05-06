@@ -161,7 +161,7 @@ Rectangle {
                     msg.is_me = (msg.sender_id === AppState.userId)
 
                     Qt.callLater(function() {
-                        messageList.positionViewAtIndex(messages.length, ListView.Beginning)
+                        messageList.positionViewAtIndex(0, ListView.Beginning)
                     })
                     
                 }
