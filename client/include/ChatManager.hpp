@@ -43,7 +43,7 @@ signals:
     void chatsUpdated(const QJsonArray &chats);
     void chatsHistoryLoaded(const QJsonArray &messages);
     void chatsHistoryPrepended(const QJsonArray &messages);
-    void messageSentSuccess(const QJsonObject &msg);
+    void clearMessageInput();
     void directChatOpened(const QString &chatId, const QString &chatTitle);
     void chatError(const QString &errorMsg);
     void webSocketConnected();

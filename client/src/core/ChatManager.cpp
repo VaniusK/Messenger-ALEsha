@@ -204,7 +204,8 @@ void ChatManager::sendMessage(const QString &chatId, const QString &text) {
             QJsonObject msg = obj["message"].toObject();
             msg["is_me"] = true;
             m_chats[chat_id].push_back(msg);
-            emit messageSentSuccess(msg);
+            emit chatsHistoryPrepended({msg});
+            emit clearMessageInput();
         } else {
             emit chatError("Send message failed: " + reply->errorString());
         }
@@ -331,7 +332,7 @@ void ChatManager::sendMessageWithAttachment(
             msg["is_me"] = true;
             m_chats[chat_id].push_back(msg);
             emit chatsHistoryPrepended({msg});
-            emit messageSentSuccess(msg);
+            emit clearMessageInput();
 
             QJsonValue idVal = msg["id"];
             qint64 messageId = idVal.isString()
