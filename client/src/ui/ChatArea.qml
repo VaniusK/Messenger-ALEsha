@@ -107,7 +107,7 @@ Rectangle {
 
             if (chatModel.count > 0) {
                 Qt.callLater(function() {
-                    messageList.positionViewAtEnd()
+                    messageList.positionViewAtIndex(0, ListView.Beginning)
 
                     if (messageList.contentHeight < messageList.height && chatModel.count > 0) {
                         var topmostMsgId = chatModel.get(0)._id || chatModel.get(0).id;
@@ -145,9 +145,6 @@ Rectangle {
         }
         function onClearMessageInput(msg) {
             messageInput.text = ""
-            Qt.callLater(function() {
-                messageList.positionViewAtEnd()
-            })
 
         }
 
