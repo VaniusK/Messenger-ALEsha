@@ -157,7 +157,7 @@ void ChatManager::fetchChatHistory(const QString &chatId, int beforeId) {
 
                 int currentUserId = m_stateManager->getUserId();
                 QJsonArray messages;
-                for (int i = raw.size() - 1; i >= 0; i--) {
+                for (int i = 0; i < raw.size(); i++) {
                     QJsonObject msg = raw[i].toObject();
                     cacheMessageMedia(msg);
 
@@ -170,7 +170,7 @@ void ChatManager::fetchChatHistory(const QString &chatId, int beforeId) {
 
                     msg["is_me"] = (senderIdStr == currentUserIdStr);
                     messages.append(msg);
-                    m_chats[chat_id].append(msg);
+                    m_chats[chat_id].insert(0, msg);
                 }
 
                 if (false) {
