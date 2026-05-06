@@ -135,7 +135,7 @@ void ChatManager::fetchChatHistory(const QString &chatId, int beforeId) {
     // Если не подгружаем новые сообщения и уже считали чат, просто выводит уже
     // имеющиеся
     if (m_chats[chat_id].size() > 0 and
-        beforeId != m_chats[chat_id].last()["id"].toInt()) {
+        beforeId != m_chats[chat_id].at(0)["id"].toInt()) {
         emit chatsHistoryLoaded(m_chats[chat_id]);
         return;
     }
@@ -161,7 +161,7 @@ void ChatManager::fetchChatHistory(const QString &chatId, int beforeId) {
                 for (int i = raw.size() - 1; i >= 0; i--) {
                     QJsonObject msg = raw[i].toObject();
                     if (m_chats[chat_id].size() > 0 and
-                        m_chats[chat_id].last()["id"].toInt() <=
+                        m_chats[chat_id].at(0)["id"].toInt() <=
                             msg["id"].toInt()) {
                         break;
                     }
@@ -208,7 +208,7 @@ void ChatManager::sendMessage(const QString &chatId, const QString &text) {
                 QJsonDocument::fromJson(reply->readAll()).object();
             QJsonObject msg = obj["message"].toObject();
             msg["is_me"] = true;
-            m_chats[chat_id].insert(0, msg);
+            m_chats[chat_id].push_back(msg);
             emit clearMessageInput();
         } else {
             emit chatError("Send message failed: " + reply->errorString());
@@ -334,8 +334,7 @@ void ChatManager::sendMessageWithAttachment(
                 QJsonDocument::fromJson(reply->readAll()).object();
             QJsonObject msg = obj["message"].toObject();
             msg["is_me"] = true;
-            m_chats[chat_id].insert(0, msg);
-            emit clearMessageInput();
+            m_chats[chat_id].push_back(msg) emit clearMessageInput();
 
             QJsonValue idVal = msg["id"];
             qint64 messageId = idVal.isString()
