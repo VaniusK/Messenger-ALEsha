@@ -128,66 +128,87 @@ void ChatManager::fetchChatHistory(const QString &chatId, int beforeId) {
     if (beforeId > 0) {
         reqJson["before_id"] = beforeId;
     }
+    int64_t chat_id = chatId.toLongLong();
+
+    int64_t index_to_check = static_cast<int64_t>(m_chats[chat_id].size()) - 40;
+
+    // Если новых сообщений получим меньше 10, ничего не делаем.
+    if (index_to_check >= 0 and
+        static_cast<QJsonValue>(m_chats[chat_id][index_to_check])["id"].toInt(
+        )) {
+        return;
+    }
 
     QNetworkReply *reply = m_connection->getWithBody(
         "/chats/" + chatId + "/messages", QJsonDocument(reqJson).toJson()
     );
 
-    connect(reply, &QNetworkReply::finished, [this, reply, beforeId]() {
-        reply->deleteLater();
-        if (reply->error() == QNetworkReply::NoError) {
-            QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
+    connect(
+        reply, &QNetworkReply::finished,
+        [this, chat_id, reply, beforeId]() {
+            reply->deleteLater();
+            if (reply->error() == QNetworkReply::NoError) {
+                QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
 #ifdef QT_DEBAG
-            qDebug() << "[ChatManager] fetchChatHistory RAW JSON: "
-                     << doc.toJson(QJsonDocument::Compact);
+                qDebug() << "[ChatManager] fetchChatHistory RAW JSON: "
+                         << doc.toJson(QJsonDocument::Compact);
 #endif
-            QJsonArray raw = doc.object()["messages"].toArray();
+                QJsonArray raw = doc.object()["messages"].toArray();
 
-            int currentUserId = m_stateManager->getUserId();
-            QJsonArray messages;
-            for (int i = raw.size() - 1; i >= 0; i--) {
-                QJsonObject msg = raw[i].toObject();
+                int currentUserId = m_stateManager->getUserId();
+                QJsonArray messages;
+                for (int i = raw.size() - 1; i >= 0; i--) {
+                    QJsonObject msg = raw[i].toObject();
+                    if (m_chats[chat_id].size() > 0 and
+                        m_chats[chat_id].last()["id"].toInt() <
+                            msg["id"].toInt()) {
+                        break;
+                    }
 
-                cacheMessageMedia(msg);
+                    cacheMessageMedia(msg);
 
-                QJsonValue senderValue = msg["sender_id"];
-                QString senderIdStr =
-                    senderValue.isString()
-                        ? senderValue.toString()
-                        : QString::number(senderValue.toInt());
-                QString currentUserIdStr = QString::number(currentUserId);
+                    QJsonValue senderValue = msg["sender_id"];
+                    QString senderIdStr =
+                        senderValue.isString()
+                            ? senderValue.toString()
+                            : QString::number(senderValue.toInt());
+                    QString currentUserIdStr = QString::number(currentUserId);
 
-                msg["is_me"] = (senderIdStr == currentUserIdStr);
-                messages.append(msg);
-            }
+                    msg["is_me"] = (senderIdStr == currentUserIdStr);
+                    messages.append(msg);
+                    m_chats[chat_id].append(msg);
+                }
 
-            if (beforeId > 0) {
-                emit chatsHistoryPrepended(messages);
+                if (false) {
+                    emit chatsHistoryPrepended(messages);
+                } else {
+                    emit chatsHistoryLoaded(m_chats[chat_id]);
+                }
             } else {
-                emit chatsHistoryLoaded(messages);
+                emit chatError("Fetch history failed: " + reply->errorString());
             }
-        } else {
-            emit chatError("Fetch history failed: " + reply->errorString());
         }
-    });
+    );
 }
 
 void ChatManager::sendMessage(const QString &chatId, const QString &text) {
     QJsonObject json;
     json["text"] = text;
+    int64_t chat_id = chatId.toLongLong();
 
     QNetworkReply *reply = m_connection->post(
         "/chats/" + chatId + "/messages", QJsonDocument(json).toJson()
     );
 
-    connect(reply, &QNetworkReply::finished, [this, reply, chatId]() {
+    connect(reply, &QNetworkReply::finished, [this, chat_id, reply, chatId]() {
         reply->deleteLater();
         if (reply->error() == QNetworkReply::NoError) {
             QJsonObject obj =
                 QJsonDocument::fromJson(reply->readAll()).object();
             QJsonObject msg = obj["message"].toObject();
             msg["is_me"] = true;
-            emit messageSentSuccess(msg);
+            m_chats[chat_id].insert(0, msg);
+            emit clearMessageInput();
         } else {
             emit chatError("Send message failed: " + reply->errorString());
         }
@@ -264,6 +285,13 @@ void ChatManager::onWebSocketDisconnected() {
 void ChatManager::onWebSocketTextMessageReceived(const QString &message) {
     qDebug() << "[ChatManager] WS message:" << message;
     QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
+    if (doc["event_type"] == "NEW_MESSAGE") {
+        QJsonObject message = doc["data"]["message"].toObject();
+        message.insert(
+            "is_me", (message["sender_id"] == m_stateManager->getUserId())
+        );
+        m_chats[message["chat_id"].toInt()].push_back(message);
+    }
     emit incomingWebSocketMessage(doc.object());
 }
 
@@ -282,6 +310,7 @@ void ChatManager::sendMessageWithAttachment(
 ) {
     QJsonObject json;
     json["text"] = caption.trimmed();
+    int64_t chat_id = chatId.toLongLong();
 
     QNetworkReply *reply = m_connection->post(
         "/chats/" + chatId + "/messages", QJsonDocument(json).toJson()
@@ -289,7 +318,7 @@ void ChatManager::sendMessageWithAttachment(
 
     connect(
         reply, &QNetworkReply::finished, this,
-        [this, reply, chatId, fileName, fileType, fileSizeBytes,
+        [this, chat_id, reply, chatId, fileName, fileType, fileSizeBytes,
          s3ObjectKey]() {
             reply->deleteLater();
 
@@ -304,7 +333,8 @@ void ChatManager::sendMessageWithAttachment(
                 QJsonDocument::fromJson(reply->readAll()).object();
             QJsonObject msg = obj["message"].toObject();
             msg["is_me"] = true;
-            emit messageSentSuccess(msg);
+            m_chats[chat_id].insert(0, msg);
+            emit clearMessageInput();
 
             QJsonValue idVal = msg["id"];
             qint64 messageId = idVal.isString()

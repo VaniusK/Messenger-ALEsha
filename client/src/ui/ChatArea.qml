@@ -107,7 +107,7 @@ Rectangle {
 
             if (chatModel.count > 0) {
                 Qt.callLater(function() {
-                    // messageList.positionViewAtEnd()
+                    messageList.positionViewAtEnd()
 
                     if (messageList.contentHeight < messageList.height && chatModel.count > 0) {
                         var topmostMsgId = chatModel.get(0)._id || chatModel.get(0).id;
@@ -143,13 +143,12 @@ Rectangle {
                 isLoadingHistory = false
             })
         }
-
-        function onMessageSentSuccess(msg) {
+        function onClearMessageInput(msg) {
             messageInput.text = ""
-            if (!msg) return
+            Qt.callLater(function() {
+                messageList.positionViewAtEnd()
+            })
 
-            chatModel.append(msg)
-            
         }
 
         function onIncomingWebSocketMessage(data) {
@@ -157,8 +156,10 @@ Rectangle {
                 var msg = data.data.message
                 if (String(msg.chat_id) === String(activeChatId)) {
                     msg.is_me = (msg.sender_id === AppState.userId)
-                    
-                    chatModel.append(msg)
+
+                    Qt.callLater(function() {
+                        messageList.positionViewAtEnd()
+                    })
                     
                 }
             }
