@@ -139,7 +139,7 @@ Rectangle {
             }
 
             Qt.callLater(function() {
-                messageList.positionViewAtIndex(messageList.count - messages.length - 1, ListView.Beginning)
+                messageList.positionViewAtIndex(chatModel.count - messages.length - 1, ListView.Beginning)
                 isLoadingHistory = false
             })
         }
