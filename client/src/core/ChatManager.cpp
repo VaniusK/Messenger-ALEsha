@@ -134,7 +134,7 @@ void ChatManager::fetchChatHistory(const QString &chatId, int beforeId) {
     // имеющиеся
     // Инвариант: beforeId либо ноль, либо айди самого раннего загруженного
     if (m_chats[chat_id].size() > 0 and
-        beforeId != m_chats[chat_id].last()["id"].toInt()) {
+        beforeId != m_chats[chat_id].at(0)["id"].toInt()) {
         emit chatsHistoryLoaded(m_chats[chat_id]);
         return;
     }
